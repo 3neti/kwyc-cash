@@ -13,6 +13,7 @@ it('allows a user to generate multiple cash vouchers', function () {
     $params = [
         'qty' => 3,
         'value' => 500,
+        'tag' => 'AA537'
     ];
 
     // Ensure there are no cash instances
@@ -35,7 +36,12 @@ it('allows a user to generate multiple cash vouchers', function () {
     // Ensure each voucher has a corresponding cash entity and user
     foreach ($vouchers as $voucher) {
         expect($cash = $voucher->getEntities(Cash::class)->first())->not->toBeNull();
-        expect($cash->user->is($user))->toBeTrue();
+        if ($cash instanceof Cash) {
+            expect($cash->value->getAmount()->toFloat())->toBe(500.0);
+            expect($cash->tag)->toBe('AA537');
+            expect($cash->user->is($user))->toBeTrue();
+        }
+
         expect($voucher->owner->is($user))->toBeTrue();
     }
 });

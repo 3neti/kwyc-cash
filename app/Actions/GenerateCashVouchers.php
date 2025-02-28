@@ -15,10 +15,11 @@ class GenerateCashVouchers
     {
         $qty = $validated['qty'];
         $value = $validated['value'];
+        $tag = $validated['tag'];
         $collection = new Collection();
 
         for ($i = 0; $i < $qty; $i++) {
-            $cash = Cash::create(['value' => $value]);
+            $cash = Cash::create(['value' => $value, 'tag' => $tag]);
             $entities = compact('cash');
 
             // Assign the cash to the user
@@ -41,7 +42,8 @@ class GenerateCashVouchers
     {
         return [
             'value' => ['required', 'numeric', 'min:100'],
-            'qty' => ['required', 'int', 'min:1']
+            'qty' => ['required', 'int', 'min:1'],
+            'tag' => ['nullable', 'string', 'min:1'],
         ];
     }
 }

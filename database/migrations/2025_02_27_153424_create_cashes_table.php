@@ -16,6 +16,7 @@ return new class extends Migration
             $table->integer('value');
             $table->string('currency');
             $table->string('tag')->nullable();
+            $table->string('secret')->nullable();
             $table->timestamp('suspended_at')->nullable();
             $table->timestamp('nullified_at')->nullable();
             $table->timestamp('expires_on')->nullable();

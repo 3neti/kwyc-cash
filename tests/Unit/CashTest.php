@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\{RefreshDatabase, WithFaker};
+use Illuminate\Support\Facades\Hash;
 use App\Data\CashData;
 use App\Models\Cash;
 
@@ -39,4 +40,9 @@ test('cash has data', function () {
     $cash = Cash::factory()->create(['value' => 100]);
     expect($data = $cash->getData())->toBeInstanceOf(CashData::class);
     expect($data->value)->toBe(100.0);
+});
+
+test('cash has secret', function() {
+    $cash = Cash::factory()->create(['secret' => $secret = $this->faker->word()]);
+    expect(Hash::check($secret, $cash->secret))->toBeTrue();
 });
