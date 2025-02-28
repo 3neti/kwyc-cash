@@ -6,11 +6,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Bavix\Wallet\Traits\HasWalletFloat;
+use Bavix\Wallet\Interfaces\WalletFloat;
+use Bavix\Wallet\Interfaces\Wallet;
 
-class User extends Authenticatable
+/**
+ * Class User.
+ *
+ * @property int         $id
+ * @property string      $name
+ * @property string      $email
+ *
+ * @method int getKey()
+ */
+class User extends Authenticatable implements Wallet, WalletFloat
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasWalletFloat;
 
     /**
      * The attributes that are mass assignable.
@@ -44,5 +56,21 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function cashes()
+    {
+        return $this->belongsToMany(Cash::class, 'cash_user', 'user_id', 'cash_id')
+            ->using(CashUser::class)
+            ->withTimestamps(); // Ensures pivot timestamps are updated
+    }
+
+    public function assignCash(Cash $cash)
+    {
+        // Detach any existing user from this cash
+        \DB::table('cash_user')->where('cash_id', $cash->id)->delete();
+
+        // Attach the cash to the new user
+        return $this->cashes()->attach($cash->id);
     }
 }
