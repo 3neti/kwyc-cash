@@ -9,6 +9,7 @@ uses(RefreshDatabase::class, WithFaker::class);
 
 it('allows a user to generate multiple cash vouchers', function () {
     $user = User::factory()->create();
+    $user->depositFloat(10000);
 
     $params = [
         'qty' => 3,
@@ -44,4 +45,6 @@ it('allows a user to generate multiple cash vouchers', function () {
 
         expect($voucher->owner->is($user))->toBeTrue();
     }
+
+    expect((float) $user->balanceFloat)->toBe(8500.0);
 });

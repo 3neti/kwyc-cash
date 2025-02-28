@@ -23,7 +23,8 @@ class GenerateCashVouchers
             $entities = compact('cash');
 
             // Assign the cash to the user
-            $user->assignCash($cash);
+            if (!$user->assignCash($cash))
+                continue;
 
             // Generate a voucher linked to this cash
             $voucher = Vouchers::withEntities(...$entities)->withOwner($user)->create();

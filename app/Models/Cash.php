@@ -83,7 +83,9 @@ class Cash extends Model implements ProductLimitedInterface
 
     public function getAmountProduct(Customer $customer): int|string
     {
-        return $this->getAttribute('value') * 100;
+        $amount = $this->getAttribute('value');
+
+        return $amount instanceof Money ? $amount->getMinorAmount()->toInt() : (int) $amount * 100;
     }
 
     public function getMetaProduct(): ?array

@@ -2,13 +2,18 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Notifications\Notifiable;
 use Bavix\Wallet\Traits\HasWalletFloat;
 use Bavix\Wallet\Interfaces\WalletFloat;
+use Bavix\Wallet\Interfaces\Customer;
+use Bavix\Wallet\Models\Transaction;
 use Bavix\Wallet\Interfaces\Wallet;
+use Illuminate\Support\Facades\DB;
+use Bavix\Wallet\Traits\CanPay;
+
 
 /**
  * Class User.
@@ -18,11 +23,12 @@ use Bavix\Wallet\Interfaces\Wallet;
  * @property string      $email
  *
  * @method int getKey()
+ * @method Transaction depositFloat(float|int|string $amount, ?array $meta = null, bool $confirmed = true)
  */
-class User extends Authenticatable implements Wallet, WalletFloat
+class User extends Authenticatable implements Wallet, WalletFloat, Customer
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasWalletFloat;
+    use HasFactory, Notifiable, HasWalletFloat, CanPay;
 
     /**
      * The attributes that are mass assignable.
@@ -65,12 +71,23 @@ class User extends Authenticatable implements Wallet, WalletFloat
             ->withTimestamps(); // Ensures pivot timestamps are updated
     }
 
-    public function assignCash(Cash $cash)
+    public function assignCash(Cash $cash): bool
     {
-        // Detach any existing user from this cash
-        \DB::table('cash_user')->where('cash_id', $cash->id)->delete();
+        $success = false;
 
-        // Attach the cash to the new user
-        return $this->cashes()->attach($cash->id);
+        DB::beginTransaction();
+        try {
+            $this->pay($cash);
+            // Detach any existing user from this cash
+            DB::table('cash_user')->where('cash_id', $cash->id)->delete();
+            // Attach the cash to the new user
+            $this->cashes()->attach($cash);
+            DB::commit();
+            $success = true;
+        } catch (\Exception $exception) {
+            DB::rollback();
+        }
+
+        return $success;
     }
 }

@@ -80,6 +80,7 @@ it('retrieves the correct cash instances for a user', function () {
 
 it('allows a user to own multiple cash instances', function () {
     $user = User::factory()->create();
+    $user->depositFloat(100000);
     $cash1 = Cash::factory()->create();
     $cash2 = Cash::factory()->create();
 
@@ -96,7 +97,9 @@ it('allows a user to own multiple cash instances', function () {
 
 it('ensures a cash instance belongs to only one user', function () {
     $user1 = User::factory()->create();
+    $user1->depositFloat(100000);
     $user2 = User::factory()->create();
+    $user2->depositFloat(100000);
     $cash = Cash::factory()->create();
 
     // Assign the cash to user1
@@ -113,7 +116,7 @@ it('ensures a cash instance belongs to only one user', function () {
 });
 
 it('ensures cash_user table only contains unique cash-user pairs', function () {
-    $user = User::factory()->create();
+    $user = User::factory()->create(); $user->depositFloat(1000000);
     $cash = Cash::factory()->create();
 
     // Assign cash to user multiple times
