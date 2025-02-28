@@ -7,11 +7,15 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "bavix/laravel-wallet": "^11.4",
+        "brick/money": "^0.10.0",
         "frittenkeez/laravel-vouchers": "^0.5.0",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "spatie/laravel-data": "^4.13",
+        "spatie/laravel-model-status": "^1.18",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {
