@@ -87,12 +87,17 @@ class Cash extends Model implements ProductLimitedInterface
         return true;
     }
 
-    public function user()
+    public function users()
     {
         return $this->belongsToMany(User::class, 'cash_user', 'cash_id', 'user_id')
             ->using(CashUser::class)
             ->withTimestamps()
             ->limit(1); // Ensures that only one user is retrieved per cash
+    }
+
+    public function getUserAttribute()
+    {
+        return $this->users()->first();
     }
 
     public function setSuspendedAttribute(bool $value): self

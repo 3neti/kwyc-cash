@@ -34,7 +34,8 @@ it('allows a user to generate multiple cash vouchers', function () {
 
     // Ensure each voucher has a corresponding cash entity and user
     foreach ($vouchers as $voucher) {
-        expect($voucher->getEntities(Cash::class)->first())->not->toBeNull();
+        expect($cash = $voucher->getEntities(Cash::class)->first())->not->toBeNull();
+        expect($cash->user->is($user))->toBeTrue();
         expect($voucher->owner->is($user))->toBeTrue();
     }
 });

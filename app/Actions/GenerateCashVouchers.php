@@ -2,12 +2,10 @@
 
 namespace App\Actions;
 
-use App\Models\Cash;
+use Lorisleiva\Actions\Concerns\AsAction;
 use FrittenKeeZ\Vouchers\Facades\Vouchers;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
-use FrittenKeeZ\Vouchers\Models\Voucher;
-use App\Models\User;
+use App\Models\{Cash, User};
 
 class GenerateCashVouchers
 {

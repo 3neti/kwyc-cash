@@ -108,8 +108,8 @@ it('ensures a cash instance belongs to only one user', function () {
     // Reload relationships
     $cash->refresh();
 
-    expect($cash->user)->toHaveCount(1); // Only one user should be attached
-    expect($cash->user->first()->id)->toBe($user2->id); // Should be reassigned to user2
+    expect($cash->users)->toHaveCount(1); // Only one user should be attached
+    expect($cash->users()->first()->id)->toBe($user2->id); // Should be reassigned to user2
 });
 
 it('ensures cash_user table only contains unique cash-user pairs', function () {
