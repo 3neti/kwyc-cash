@@ -29,5 +29,7 @@
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="DISBURSEMENT_SERVER_URL" value="https://fibi.disburse.cash/api/disburse"/>
+        <env name="DISBURSEMENT_SERVER_TOKEN" value="hR9VSuXPNe1NNYxJ6I0jhXrj7z3ERovHFYot9aR00a8bfc3f"/>
     </php>
 </phpunit>

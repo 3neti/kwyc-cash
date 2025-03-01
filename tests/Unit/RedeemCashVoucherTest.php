@@ -14,7 +14,7 @@ test('allows a contact to redeem a voucher code', function () {
 
     $params = [
         'qty' => 3,
-        'value' => 500,
+        'value' => 24,
         'tag' => 'AA537'
     ];
     $vouchers = GenerateCashVouchers::run($user, $params);

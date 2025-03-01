@@ -2,8 +2,8 @@
 
 namespace App\Actions;
 
-use Lorisleiva\Actions\Concerns\AsAction;
 use FrittenKeeZ\Vouchers\Facades\Vouchers;
+use Lorisleiva\Actions\Concerns\AsAction;
 use Illuminate\Support\Collection;
 use App\Models\{Cash, User};
 
@@ -42,7 +42,7 @@ class GenerateCashVouchers
     public function rules(): array
     {
         return [
-            'value' => ['required', 'numeric', 'min:100'],
+            'value' => ['required', 'numeric', 'min:20'],
             'qty' => ['required', 'int', 'min:1'],
             'tag' => ['nullable', 'string', 'min:1'],
         ];
