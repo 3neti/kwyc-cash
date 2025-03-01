@@ -16,8 +16,9 @@ class VoucherData extends Data
     public static function fromModel(Voucher $voucher): VoucherData
     {
         $cash = $voucher->getEntities(Cash::class)->first();
+
         return new self(
-            code: $voucher->code,
+            code: $voucher->getAttribute('code'),
             amount: $cash->value->getAmount()->toFloat()
         );
     }

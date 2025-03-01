@@ -2,18 +2,16 @@
 
 namespace App\Models;
 
+use Bavix\Wallet\Interfaces\{Customer, Wallet, WalletFloat};
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use FrittenKeeZ\Vouchers\Concerns\HasVouchers;
 use Illuminate\Notifications\Notifiable;
 use Bavix\Wallet\Traits\HasWalletFloat;
-use Bavix\Wallet\Interfaces\WalletFloat;
-use Bavix\Wallet\Interfaces\Customer;
 use Bavix\Wallet\Models\Transaction;
-use Bavix\Wallet\Interfaces\Wallet;
 use Illuminate\Support\Facades\DB;
 use Bavix\Wallet\Traits\CanPay;
-
 
 /**
  * Class User.
@@ -28,7 +26,7 @@ use Bavix\Wallet\Traits\CanPay;
 class User extends Authenticatable implements Wallet, WalletFloat, Customer
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasWalletFloat, CanPay;
+    use HasFactory, Notifiable, HasWalletFloat, CanPay, HasVouchers;
 
     /**
      * The attributes that are mass assignable.

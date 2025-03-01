@@ -39,6 +39,8 @@ class Cash extends Model implements ProductLimitedInterface
     use HasFactory;
     use WithData;
 
+    const DEFAULT_CURRENCY = 'PHP';
+
     const INITIAL_STATE = 'minted';
     const SUSPENDED_STATE = 'suspended';
     const NULLIFIED_STATE = 'nullified';
@@ -55,8 +57,7 @@ class Cash extends Model implements ProductLimitedInterface
     public static function booted(): void
     {
         static::creating(function (Cash $cash) {
-            $cash->currency = empty($cash->currency) ? 'PHP' : $cash->currency;
-//            $cash->secret = empty($cash->secret) ? '' : Hash::make($cash->secret);
+            $cash->currency = empty($cash->currency) ? self::DEFAULT_CURRENCY : $cash->currency;
         });
         static::created(function (Cash $cash) {
             $cash->setStatus(static::INITIAL_STATE);
@@ -66,11 +67,18 @@ class Cash extends Model implements ProductLimitedInterface
     protected function Value(): Attribute
     {
         return Attribute::make(
-            get: fn ($value, $attributes) => Money::ofMinor($value, $attributes['currency'] ?? 'PHP'),
-            set: fn ($value) =>
-            $value instanceof Money
-                ? $value->getMinorAmount()->toInt()  // Correctly extract the integer value
-                : Money::of($value, 'PHP')->getMinorAmount()->toInt() // Ensure proper conversion
+            get: function ($value, $attributes) {
+                $currency = $attributes['currency'] ?? self::DEFAULT_CURRENCY;
+
+                return Money::ofMinor($value, $currency);
+            },
+            set: function ($value, $attributes) {
+                $currency = $attributes['currency'] ?? self::DEFAULT_CURRENCY;
+
+                return $value instanceof Money
+                    ? $value->getMinorAmount()->toInt()  // Extract minor units if already Money
+                    : Money::of($value, $currency)->getMinorAmount()->toInt(); // Convert before storing
+            }
         );
     }
 

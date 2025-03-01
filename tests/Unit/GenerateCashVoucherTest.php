@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Testing\{RefreshDatabase, WithFaker};
 use FrittenKeeZ\Vouchers\Models\Voucher;
 use App\Actions\GenerateCashVouchers;
+use Illuminate\Support\Facades\Event;
 use App\Models\{Cash, User};
 
 uses(RefreshDatabase::class, WithFaker::class);
