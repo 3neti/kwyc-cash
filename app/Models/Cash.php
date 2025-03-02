@@ -23,6 +23,7 @@ use App\Data\CashData;
  * @property string      $tag
  * @property string      $secret
  * @property string      $status
+ * @property bool        $disbursed
  * @property bool        $suspended
  * @property bool        $nullified
  * @property bool        $expired
@@ -120,6 +121,19 @@ class Cash extends Model implements ProductLimitedInterface
     public function getUserAttribute()
     {
         return $this->users()->first();
+    }
+
+    public function setDisbursedAttribute(bool $value): self
+    {
+        $this->setAttribute('disbursed_at', $value ? now() : null);
+
+        return $this;
+    }
+
+    public function getDisbursedAttribute(): bool
+    {
+        return $this->getAttribute('disbursed_at')
+            && $this->getAttribute('disbursed_at') <= now();
     }
 
     public function setSuspendedAttribute(bool $value): self

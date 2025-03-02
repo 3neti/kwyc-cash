@@ -10,5 +10,6 @@ return [
             'code' => env('DISBURSEMENT_BANK_CODE', 'GXCHPHM2XXX'),
             'via' => env('DISBURSEMENT_BANK_VIA', 'INSTAPAY'),
         ],
+        'disabled' => env('DISBURSEMENT_DISABLED', true)
     ],
 ];

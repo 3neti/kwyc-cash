@@ -2,43 +2,68 @@
 
 namespace App\Actions;
 
+use App\Models\Cash;
+use App\Models\User;
 use FrittenKeeZ\Vouchers\Facades\Vouchers;
-use Lorisleiva\Actions\Concerns\AsAction;
 use Illuminate\Support\Collection;
-use App\Models\{Cash, User};
+use Lorisleiva\Actions\Concerns\AsAction;
 
+/**
+ * Generates a collection of cash vouchers for a specified user.
+ *
+ * This action validates the input parameters, creates cash instances, assigns
+ * them to the user, and generates vouchers linked to the cash instances.
+ */
 class GenerateCashVouchers
 {
     use AsAction;
 
-    protected function generateCashVouchers(User $user, array $validated)
+    /**
+     * Handle the generation of cash vouchers.
+     *
+     * @param User $user The user to assign the cash vouchers to.
+     * @param array $params The validated input parameters.
+     * @return Collection The generated collection of vouchers.
+     */
+    public function handle(User $user, array $params): Collection
     {
-        $qty = $validated['qty'];
-        $value = $validated['value'];
-        $tag = $validated['tag'];
+        $validated = validator($params, $this->rules())->validate();
+
+        return $this->generateCashVouchers($user, $validated);
+    }
+
+    /**
+     * Generate the specified quantity of cash vouchers for the user.
+     *
+     * @param User $user The user to assign the cash vouchers to.
+     * @param array $validated The validated input data (value, qty, tag).
+     * @return Collection The generated collection of vouchers.
+     */
+    protected function generateCashVouchers(User $user, array $validated): Collection
+    {
         $collection = new Collection();
 
-        for ($i = 0; $i < $qty; $i++) {
-            $cash = Cash::create(['value' => $value, 'tag' => $tag]);
-            $entities = compact('cash');
+        foreach (range(1, $validated['qty']) as $index) {
+            $cash = $this->createCash($validated['value'], $validated['tag']);
 
-            // Assign the cash to the user
-            if (!$user->assignCash($cash))
+            // Assign cash to the user; skip if assignment fails
+            if (!$user->assignCash($cash)) {
                 continue;
+            }
 
-            // Generate a voucher linked to this cash
-            $voucher = Vouchers::withEntities(...$entities)->withOwner($user)->create();
+            // Create a voucher linked to the cash and the user
+            $voucher = $this->createVoucher($cash, $user);
             $collection->add($voucher);
         }
 
         return $collection;
     }
 
-    public function handle(User $user, array $params)
-    {
-        return $this->generateCashVouchers($user, validator($params, $this->rules())->validate());
-    }
-
+    /**
+     * Validation rules for generating cash vouchers.
+     *
+     * @return array The validation rules.
+     */
     public function rules(): array
     {
         return [
@@ -46,5 +71,35 @@ class GenerateCashVouchers
             'qty' => ['required', 'int', 'min:1'],
             'tag' => ['nullable', 'string', 'min:1'],
         ];
+    }
+
+    /**
+     * Creates a cash instance with the specified value and tag.
+     *
+     * @param float $value The monetary value of the cash.
+     * @param string|null $tag An optional tag for categorization.
+     * @return Cash The created cash instance.
+     */
+    protected function createCash(float $value, ?string $tag = null): Cash
+    {
+        return Cash::create([
+            'value' => $value,
+            'tag' => $tag,
+        ]);
+    }
+
+    /**
+     * Creates a voucher associated with the specified cash and user.
+     *
+     * @param Cash $cash The cash entity to associate with the voucher.
+     * @param User $user The owner of the voucher.
+     * @return mixed The created voucher instance.
+     */
+    protected function createVoucher(Cash $cash, User $user)
+    {
+        $entities = compact('cash');
+        return Vouchers::withEntities(...$entities)
+            ->withOwner($user)
+            ->create();
     }
 }

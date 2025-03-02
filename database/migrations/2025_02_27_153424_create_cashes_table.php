@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('currency');
             $table->string('tag')->nullable();
             $table->string('secret')->nullable();
+            $table->timestamp('disbursed_at')->nullable();
             $table->timestamp('suspended_at')->nullable();
             $table->timestamp('nullified_at')->nullable();
             $table->timestamp('expires_on')->nullable();

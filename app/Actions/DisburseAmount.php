@@ -2,14 +2,14 @@
 
 namespace App\Actions;
 
-use Illuminate\Http\Client\ConnectionException;
-use Lorisleiva\Actions\Concerns\AsAction;
+use App\Events\VoucherRedeemed;
+use App\Models\Cash;
 use FrittenKeeZ\Vouchers\Models\Voucher;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use App\Events\VoucherRedeemed;
 use Illuminate\Support\Str;
-use App\Models\Cash;
+use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * Handles the disbursement of cash amounts to a specified mobile account.
@@ -22,33 +22,45 @@ class DisburseAmount
     use AsAction;
 
     /**
-     * Handles the core disbursement process.
+     * Handles the core disbursement process using a Voucher model.
      *
-     * @param string $mobile The mobile number to receive the disbursement.
-     * @param float $amount The amount to disburse.
-     * @param string|null $tag An optional tag for the disbursement.
+     * @param Voucher $voucher The voucher model containing cash and redeemer details.
      * @return bool True if the disbursement was successful, otherwise false.
      * @throws ConnectionException
      */
-    public function handle(string $mobile, float $amount, ?string $tag = null): bool
+    public function handle(Voucher $voucher): bool
     {
-        $body = $this->buildRequestBody($mobile, $amount, $tag);
+        $cash = $voucher->getEntities(Cash::class)->first();
 
-        return $this->disburse($body);
+        if (!$cash instanceof Cash) {
+            Log::warning('No associated Cash entity found for the voucher', ['voucher_code' => $voucher->code]);
+            return false;
+        }
+
+        $mobile = $voucher->redeemers->first()?->redeemer->mobile ?? null;
+        $amount = $cash->value->getAmount()->toFloat();
+        $tag = $cash->tag;
+
+        if (!$mobile || $amount <= 0) {
+            Log::warning('Invalid disbursement data', compact('mobile', 'amount', 'tag'));
+            return false;
+        }
+
+        $body = $this->buildRequestBody($voucher, $mobile, $amount, $tag);
+
+        return $this->disburse($body, $cash);
     }
 
     /**
      * Dispatches the disbursement as a queued job.
      *
-     * @param string $mobile The mobile number to receive the disbursement.
-     * @param float $amount The amount to disburse.
-     * @param string|null $tag An optional tag for the disbursement.
+     * @param Voucher $voucher The voucher model to disburse.
      * @return void
      * @throws ConnectionException
      */
-    public function asJob(string $mobile, float $amount, ?string $tag = null): void
+    public function asJob(Voucher $voucher): void
     {
-        $this->handle($mobile, $amount, $tag);
+        $this->handle($voucher);
     }
 
     /**
@@ -62,13 +74,7 @@ class DisburseAmount
         $voucher = $event->voucher;
 
         if ($voucher instanceof Voucher) {
-            $mobile = $voucher->redeemer->redeemer->mobile;
-            $cash = $voucher->getEntities(Cash::class)->first();
-            $amount = $cash?->value->getAmount()->toFloat() ?? 0;
-
-            if ($amount > 0) {
-                self::dispatch($mobile, $amount);
-            }
+            self::dispatch($voucher);
         }
     }
 
@@ -79,8 +85,12 @@ class DisburseAmount
      * @return bool True if the request was successful, otherwise false.
      * @throws ConnectionException
      */
-    protected function disburse(array $body): bool
+    protected function disburse(array $body, Cash $cash): bool
     {
+        if (config('kwyc-cash.disbursement.disabled')) {
+            return true;
+        }
+
         Log::info('Disbursement initiated', ['reference' => $body['reference']]);
 
         $response = Http::withHeaders($this->getRequestHeaders())
@@ -91,21 +101,29 @@ class DisburseAmount
             'body' => $response->body(),
         ]);
 
-        return $response->ok() && Str::isUuid($response->json('uuid'));
+        if ($response->ok() && Str::isUuid($response->json('uuid'))) {
+            $cash->disbursed = true;
+            $cash->save();
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
      * Builds the request body for the disbursement API.
      *
+     * @param Voucher $voucher The voucher model.
      * @param string $mobile The mobile number to receive the disbursement.
      * @param float $amount The amount to disburse.
      * @param string|null $tag An optional tag for the disbursement.
      * @return array The formatted request payload.
      */
-    protected function buildRequestBody(string $mobile, float $amount, ?string $tag = null): array
+    protected function buildRequestBody(Voucher $voucher, string $mobile, float $amount, ?string $tag = null): array
     {
         return [
-            'reference' => $this->generateReferenceCode(compact('mobile', 'amount', 'tag')),
+            'reference' => $this->generateReferenceCode($voucher, $mobile, $amount, $tag),
             'bank' => $this->getBankCode(),
             'account_number' => $mobile,
             'via' => $this->getTransferVia(),
@@ -114,19 +132,20 @@ class DisburseAmount
     }
 
     /**
-     * Generates a short, unique reference code combining a random string and the mobile number.
+     * Generates a unique reference code for the disbursement.
      *
-     * @param array $params Array containing 'mobile' as a key.
+     * @param Voucher $voucher The voucher model.
+     * @param string $mobile The mobile number.
+     * @param float $amount The disbursement amount.
+     * @param string|null $tag The disbursement tag.
      * @return string The generated reference code.
      */
-    protected function generateReferenceCode(array $params): string
+    protected function generateReferenceCode(Voucher $voucher, string $mobile, float $amount, ?string $tag = null): string
     {
-        $randomPart = Str::upper(Str::random(8)); // Generates a random 8-character alphanumeric string
-        $mobile = $params['mobile'];
-
+        $randomPart = Str::upper(Str::random(8));
         $referenceCode = "{$randomPart}-{$mobile}";
 
-        logger('Generated reference code', ['reference' => $referenceCode]);
+        Log::info('Generated reference code', ['reference' => $referenceCode]);
 
         return $referenceCode;
     }
@@ -138,10 +157,10 @@ class DisburseAmount
      */
     protected function getBankCode(): string
     {
-        $bank_code = config('kwyc-cash.disbursement.bank.code', 'DEFAULT_BANK_CODE');
-        Log::info('Using bank code', ['bank_code' => $bank_code]);
+        $bankCode = config('kwyc-cash.disbursement.bank.code', 'DEFAULT_BANK_CODE');
+        Log::info('Using bank code', ['bank_code' => $bankCode]);
 
-        return $bank_code;
+        return $bankCode;
     }
 
     /**
