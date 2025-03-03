@@ -85,11 +85,6 @@ class RedeemCashVoucher
         self::$errorMessage = null;
     }
 
-//    public function asController(ActionRequest $request): bool
-//    {
-//        return $this->handle(...$request->validated());
-//    }
-
     public function rules(): array
     {
         return [
