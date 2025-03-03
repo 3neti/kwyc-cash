@@ -2,19 +2,21 @@
 
 namespace App\Actions;
 
+use FrittenKeeZ\Vouchers\Exceptions\VoucherAlreadyRedeemedException;
+use FrittenKeeZ\Vouchers\Exceptions\VoucherNotFoundException;
 use FrittenKeeZ\Vouchers\Facades\Vouchers;
 use Lorisleiva\Actions\Concerns\AsAction;
 use Lorisleiva\Actions\ActionRequest;
 use App\Models\Contact;
 
-/**
- * Redeems a cash voucher by associating it with a contact.
- *
- * This action can be used as a standalone method, a queued job, or a controller action.
- */
 class RedeemCashVoucher
 {
     use AsAction;
+
+    /**
+     * Static property to store the error message across action instances.
+     */
+    protected static ?string $errorMessage = null;
 
     /**
      * Handles the redemption of a cash voucher.
@@ -35,35 +37,59 @@ class RedeemCashVoucher
                 'country' => $country,
             ]);
 
+            // Reset error message if redemption is successful
+            if ($result) {
+                self::resetErrorMessage();
+            }
+
             return (bool) $result;
+
+        } catch (VoucherNotFoundException $e) {
+            self::setErrorMessage('The voucher code provided was not found.');
+
+        } catch (VoucherAlreadyRedeemedException $e) {
+            self::setErrorMessage('The voucher has already been redeemed.');
+
         } catch (\Exception $e) {
-            logger()->error('Voucher redemption failed', [
-                'voucher_code' => $voucher_code,
-                'mobile' => $mobile,
-                'country' => $country,
-                'error' => $e->getMessage(),
-            ]);
-
-            return false;
+            self::setErrorMessage('An unexpected error occurred while redeeming the voucher.');
         }
+
+        return false;
     }
 
     /**
-     * Processes the voucher redemption when used as a controller action.
+     * Sets the static error message.
      *
-     * @param ActionRequest $request The incoming HTTP request.
-     * @return mixed The result of the handle method.
+     * @param string $message The error message to store.
      */
-    public function asController(ActionRequest $request)
+    protected static function setErrorMessage(string $message): void
     {
-        return $this->handle(...$request->validated());
+        self::$errorMessage = $message;
     }
 
     /**
-     * Defines the validation rules for the voucher redemption.
+     * Retrieves the static error message, if any.
      *
-     * @return array The validation rules.
+     * @return string|null The error message, or null if no error occurred.
      */
+    public static function getErrorMessage(): ?string
+    {
+        return self::$errorMessage;
+    }
+
+    /**
+     * Resets the error message to null.
+     */
+    protected static function resetErrorMessage(): void
+    {
+        self::$errorMessage = null;
+    }
+
+//    public function asController(ActionRequest $request): bool
+//    {
+//        return $this->handle(...$request->validated());
+//    }
+
     public function rules(): array
     {
         return [
@@ -73,25 +99,11 @@ class RedeemCashVoucher
         ];
     }
 
-    /**
-     * Normalizes the mobile number to the standard format.
-     *
-     * @param string $mobile The input mobile number.
-     * @param string $country The country code for formatting.
-     * @return string The normalized mobile number.
-     */
     protected function normalizeMobileNumber(string $mobile, string $country): string
     {
         return phone($mobile, $country)->formatForMobileDialingInCountry($country);
     }
 
-    /**
-     * Retrieves an existing contact or creates a new one.
-     *
-     * @param string $mobile The normalized mobile number.
-     * @param string $country The country code.
-     * @return Contact The contact instance.
-     */
     protected function getOrCreateContact(string $mobile, string $country): Contact
     {
         return Contact::firstOrCreate(compact('mobile', 'country'));

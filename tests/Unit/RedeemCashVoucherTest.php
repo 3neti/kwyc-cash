@@ -8,6 +8,18 @@ use App\Models\{Cash, User};
 
 uses(RefreshDatabase::class, WithFaker::class);
 
+use App\Actions\DisburseAmount;
+use Mockery\MockInterface;
+
+beforeEach(function () {
+    $this->disburseMock = Mockery::mock(DisburseAmount::class, function (MockInterface $mock) {
+        $mock->shouldReceive('handle')->andReturn(true);
+//        $mock->shouldReceive('disburse')->andReturn(true);
+    });
+
+    $this->app->instance(DisburseAmount::class, $this->disburseMock);
+});
+
 test('allows a contact to redeem a voucher code', function () {
     $user = User::factory()->create();
     $user->depositFloat(10000);

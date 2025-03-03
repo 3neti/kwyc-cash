@@ -17,7 +17,7 @@ class ContactFactory extends Factory
     public function definition(): array
     {
         return [
-            'mobile' => '091' . $this->faker->numberBetween(10000000, 99999999)
+            'mobile' => '0917123' . $this->faker->numberBetween(1000, 9999)
         ];
     }
 }

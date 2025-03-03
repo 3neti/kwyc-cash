@@ -5,7 +5,7 @@ namespace App\Providers;
 use FrittenKeeZ\Vouchers\Models\Voucher;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Vite;
-use App\Events\VoucherRedeemed;
+use App\Actions\DisburseAmount;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,7 +24,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
         Voucher::redeemed(function (Voucher $voucher) {
-            event(new VoucherRedeemed($voucher));
+            DisburseAmount::dispatch($voucher);
         });
     }
 }

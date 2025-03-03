@@ -33,7 +33,7 @@ class VoucherSeeder extends Seeder
 
         // Parameters for generating cash vouchers
         $params = [
-            'qty' => 1,
+            'qty' => 10,
             'value' => 20,
             'tag' => 'SEEDED',
         ];
