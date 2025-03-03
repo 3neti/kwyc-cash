@@ -27,4 +27,16 @@ Route::middleware('auth')->group(function () {
 
 Route::resource('redeem', RedeemCashVoucherController::class)->parameter('redeem', 'voucher')->only(['create', 'store', 'show']);
 
+use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\WalletController;
+
+Route::middleware('auth')->group(function () {
+    Route::resource('vouchers', VoucherController::class)->only('create', 'store');
+    Route::resource('wallet', WalletController::class)->only('create', 'store');
+});
+
+
+
+
+
 require __DIR__.'/auth.php';
