@@ -80,6 +80,16 @@ const clearQRCode = () => {
 
 // Auto-generate the QR code on page load
 generateQRCode();
+
+// Download the QR code as an image
+const downloadQRCode = () => {
+    if (!qrCode.value) return;
+
+    const link = document.createElement('a');
+    link.href = qrCode.value;
+    link.download = `QR_Code_Deposit_${formattedAmount.value}.png`;
+    link.click();
+};
 </script>
 
 <template>
@@ -169,6 +179,15 @@ generateQRCode();
                                     alt="Deposit QR Code"
                                     class="mx-auto mt-4"
                                 />
+                                <!-- Download Button for QR Code -->
+                                <div class="flex justify-center mt-4">
+                                    <PrimaryButton
+                                        class="bg-green-500 hover:bg-green-600"
+                                        @click="downloadQRCode"
+                                    >
+                                        Download QR Code
+                                    </PrimaryButton>
+                                </div>
                             </div>
                         </div>
                     </div>
