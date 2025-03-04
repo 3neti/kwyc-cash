@@ -5,12 +5,23 @@ namespace App\Http\Controllers;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
 use FrittenKeeZ\Vouchers\Models\Voucher;
+use Spatie\LaravelData\DataCollection;
 use App\Actions\GenerateCashVouchers;
 use Illuminate\Http\Request;
+use App\Data\VoucherData;
 use App\Models\Cash;
 
 class VoucherController extends Controller
 {
+    public function index(Request $request): \Inertia\Response|\Inertia\ResponseFactory
+    {
+        $user = $request->user();
+
+        return inertia('Voucher/Index',[
+            'vouchers' => new DataCollection(VoucherData::class, $user->vouchers),
+        ]);
+    }
+
     /**
      * Show the voucher generation page.
      */

@@ -51,6 +51,12 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     Wallet
                                 </NavLink>
+                                <NavLink
+                                    :href="route('vouchers.index')"
+                                    :active="route().current('vouchers.index')"
+                                >
+                                    List
+                                </NavLink>
                             </div>
                         </div>
 
