@@ -5,7 +5,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 
-import { useForm, usePage } from '@inertiajs/vue3';
+import { useForm, usePage, router } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 
 // Define props with default values
@@ -84,6 +84,11 @@ const submit = () => {
             });
         },
     });
+};
+
+// Redirect to Load Credits page
+const redirectToLoadCredits = () => {
+    router.get(route('wallet.create'));
 };
 </script>
 
@@ -164,12 +169,22 @@ const submit = () => {
                             </div>
 
                             <div class="flex justify-center mt-6">
-                                <PrimaryButton
-                                    :class="{ 'opacity-25': !canGenerateVouchers }"
-                                    :disabled="!canGenerateVouchers || form.processing"
-                                >
-                                    Generate Vouchers
-                                </PrimaryButton>
+                                <template v-if="canGenerateVouchers">
+                                    <PrimaryButton
+                                        :class="{ 'opacity-25': form.processing }"
+                                        :disabled="form.processing"
+                                    >
+                                        Generate Vouchers
+                                    </PrimaryButton>
+                                </template>
+                                <template v-else>
+                                    <PrimaryButton
+                                        class="bg-yellow-500 hover:bg-yellow-600"
+                                        @click.prevent="redirectToLoadCredits"
+                                    >
+                                        Load Credits
+                                    </PrimaryButton>
+                                </template>
                             </div>
                         </form>
 
