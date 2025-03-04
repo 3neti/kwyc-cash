@@ -19,7 +19,8 @@ class VoucherController extends Controller
         return inertia('Voucher/Generate',[
             'defaultVoucherValue' => config('kwyc-cash.voucher.value'),
             'minAmount' => config('kwyc-cash.voucher.minimum'),
-            'stepAmount' => config('kwyc-cash.voucher.increment')
+            'stepAmount' => config('kwyc-cash.voucher.increment'),
+            'tariffAmount' => config('kwyc-cash.voucher.tariff')
         ]);
     }
 

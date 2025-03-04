@@ -22,6 +22,10 @@ const props = defineProps({
         type: Number,
         default: 50, // Step increment for the voucher value
     },
+    tariffAmount: {
+        type: Number,
+        default: 25, // Default tariff in major units
+    },
 });
 
 // Form state with default values
@@ -44,16 +48,17 @@ const formatter = new Intl.NumberFormat('en-PH', {
 });
 const formattedBalance = computed(() => formatter.format(userBalance.value));
 
-// Calculate total voucher value
-const totalVoucherValue = computed(() => {
-    const value = parseFloat(form.value) || 0;
-    const qty = parseInt(form.qty) || 0;
-    return value * qty;
+// Calculate total voucher cost including tariff
+const totalVoucherCost = computed(() => {
+    const value = Number(form.value) || 0;
+    const qty = Number(form.qty) || 0;
+    const tariff = Number(props.tariffAmount) || 0;
+    return (value + tariff) * qty;
 });
 
 // Button visibility based on balance check
 const canGenerateVouchers = computed(() => {
-    return totalVoucherValue.value <= userBalance.value;
+    return totalVoucherCost.value <= userBalance.value;
 });
 
 // Clear status message after 3 seconds
@@ -158,10 +163,10 @@ const redirectToLoadCredits = () => {
                                 <InputError class="mt-2" :message="form.errors.tag" />
                             </div>
 
-                            <!-- Display total voucher value and validate against balance -->
+                            <!-- Display total voucher cost including tariff and validate against balance -->
                             <div class="flex justify-between items-center mb-4">
                                 <div class="text-sm text-gray-600">
-                                    Total Voucher Value: <span class="text-green-600">{{ formatter.format(totalVoucherValue) }}</span>
+                                    Total Voucher Cost (Incl. Tariff): <span class="text-green-600">{{ formatter.format(totalVoucherCost) }}</span>
                                 </div>
                                 <div class="text-sm text-red-600" v-if="!canGenerateVouchers">
                                     Insufficient balance for this transaction.

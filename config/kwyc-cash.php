@@ -26,5 +26,6 @@ return [
         'value' => env('VOUCHER_VALUE', 50),
         'minimum' => env('VOUCHER_MINIMUM', 50),
         'increment' => env('VOUCHER_INCREMENT', 50),
+        'tariff' => env('VOUCHER_TARIFF', 50)
     ],
 ];

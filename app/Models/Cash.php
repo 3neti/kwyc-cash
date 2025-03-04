@@ -93,8 +93,16 @@ class Cash extends Model implements ProductLimitedInterface
     public function getAmountProduct(Customer $customer): int|string
     {
         $amount = $this->getAttribute('value');
+        $minor_amount = $amount instanceof Money ? $amount->getMinorAmount()->toInt() : (int) $amount * 100;
 
-        return $amount instanceof Money ? $amount->getMinorAmount()->toInt() : (int) $amount * 100;
+        return $minor_amount + $this->getMinorTariff();
+    }
+
+    public function getMinorTariff(): int
+    {
+        $tariff = config('kwyc-cash.voucher.tariff');
+
+        return $tariff * 100;
     }
 
     public function getMetaProduct(): ?array
@@ -103,6 +111,16 @@ class Cash extends Model implements ProductLimitedInterface
             'title' => 'cash',
             'description' => 'Cash'
         ];
+    }
+
+    public function getFeePercent(): float
+    {
+        return 0.03; // 3%
+    }
+
+    public function getMinimalFee(): int
+    {
+        return 2500;
     }
 
     public function canBuy(Customer $customer, int $quantity = 1, bool $force = false): bool
