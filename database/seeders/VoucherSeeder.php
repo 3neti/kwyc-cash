@@ -21,15 +21,17 @@ class VoucherSeeder extends Seeder
 
         // Fetch or create the system user
         $user = User::firstOrCreate(
-            ['email' => 'system@example.com'],
+            ['email' => 'lester@hurtado.ph'],
             [
                 'name' => 'System User',
+                'mobile' => '09173011987',
+                'country' => 'PH',
                 'password' => bcrypt('password'), // Set a default password
             ]
         );
 
         // Ensure the system user has enough balance
-        $user->depositFloat(10000);
+        $user->depositFloat(200);
 
         // Parameters for generating cash vouchers
         $params = [

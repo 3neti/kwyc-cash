@@ -16,7 +16,7 @@ class WalletController extends Controller
         $user = Auth::user();
 
         return Inertia::render('Auth/LoadWallet', [
-            'balance' => $user->balanceFloat,
+            'balance' => (float) $user->balanceFloat,
         ]);
     }
 
@@ -40,5 +40,26 @@ class WalletController extends Controller
                 'message' => 'Wallet updated successfully!',
             ],
         ]);
+    }
+
+    public function generateDepositQRCode(Request $request)
+    {
+        try {
+            $qrCode = GenerateDepositQRCode::run(
+                $validated['amount'] ?? null,
+                $validated['account'] ?? null
+            );
+
+            return response()->json([
+                'success' => true,
+                'qr_code' => $qrCode,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 }

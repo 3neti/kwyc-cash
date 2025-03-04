@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
-use FrittenKeeZ\Vouchers\Concerns\HasRedeemers;
+use App\HasMobile;
 
 /**
  * Class Contact.
@@ -20,8 +20,7 @@ class Contact extends Model
 {
     /** @use HasFactory<\Database\Factories\ContactFactory> */
     use HasFactory;
-
-    const DEFAULT_COUNTRY = 'PH';
+    use HasMobile;
 
     protected $fillable = [
         'mobile',
@@ -33,21 +32,5 @@ class Contact extends Model
         static::creating(function (Contact $contact) {
             $contact->country = empty($contact->country) ? self::DEFAULT_COUNTRY : $contact->country;
         });
-    }
-
-    protected function Mobile(): Attribute
-    {
-        return Attribute::make(
-            get: function ($value, $attributes) {
-                $country = $attributes['country'] ?? self::DEFAULT_COUNTRY;
-
-                return phone($value, $country)->formatForMobileDialingInCountry($country);
-            },
-            set: function ($value, $attributes) {
-                $country = $attributes['country'] ?? self::DEFAULT_COUNTRY;
-
-                return phone($value, $country)->formatForMobileDialingInCountry($country);
-            }
-        );
     }
 }

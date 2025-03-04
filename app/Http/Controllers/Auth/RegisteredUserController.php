@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
+use Propaganistas\LaravelPhone\Rules\Phone;
 
 class RegisteredUserController extends Controller
 {
@@ -33,12 +34,14 @@ class RegisteredUserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'mobile' => ['required', (new Phone)->type('mobile')->country('PH'), 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
+            'mobile' => $request->mobile,
             'password' => Hash::make($request->password),
         ]);
 

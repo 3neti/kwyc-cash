@@ -12,4 +12,11 @@ return [
         ],
         'disabled' => env('DISBURSEMENT_DISABLED', true)
     ],
+    'payment' => [
+        'server' => [
+            'url' => env('PAYMENT_SERVER_URL', 'https://fibi.disburse.cash/api/generate-qr'),
+            'token' => env('PAYMENT_SERVER_TOKEN')
+        ],
+
+    ],
 ];

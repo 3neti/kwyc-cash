@@ -1,18 +1,19 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import InputError from '@/Components/InputError.vue';
-import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import InputLabel from '@/Components/InputLabel.vue';
+import InputError from '@/Components/InputError.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
-import { ref, watch, computed } from 'vue';
 
-// Define props to receive the initial balance
+import { router, useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
+
+// Props
 const props = defineProps({
     balance: Number,
 });
 
-// Setup form and state
+// Form and state setup
 const form = useForm({
     amount: '',
 });
@@ -20,23 +21,13 @@ const form = useForm({
 const statusMessage = ref('');
 const userBalance = ref(props.balance ?? 0);
 
-// Watch for flash events to update balance and show status messages
-watch(
-    () => usePage().props.flash.event,
-    (event) => {
-        if (event?.name === 'walletUpdated') {
-            userBalance.value = event?.data.balance ?? userBalance.value;
-            statusMessage.value = event?.data.message ?? 'Wallet updated successfully!';
-            form.reset();
+// Format the balance as currency
+const formatter = new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+});
 
-            // Auto-hide status message after 5 seconds
-            setTimeout(() => {
-                statusMessage.value = '';
-            }, 5000);
-        }
-    },
-    { immediate: true }
-);
+const formattedBalance = computed(() => formatter.format(userBalance.value));
 
 // Submit form to load wallet credits
 const submit = () => {
@@ -53,10 +44,24 @@ const submit = () => {
     });
 };
 
-// Format the balance as currency
-const formattedBalance = computed(() => {
-    return `₱${parseFloat(userBalance.value).toFixed(2)}`;
-});
+// Listen for deposit confirmation and balance updates via Laravel Echo
+Echo.private(`user.${usePage().props.auth.user.id}`)
+    .listen('.deposit.confirmed', (event) => {
+        console.log(event);
+        statusMessage.value = event.message;
+
+        // Show deposit confirmation for 15 seconds
+        setTimeout(() => {
+            statusMessage.value = '';
+        }, 3000);
+    })
+    .listen('.balance.updated', (event) => {
+        console.log(event);
+        userBalance.value = event.balanceFloat;
+
+        // Do not change the status message when the balance is updated
+        // statusMessage.value = event.message; // Commented out to prevent override
+    });
 </script>
 
 <template>

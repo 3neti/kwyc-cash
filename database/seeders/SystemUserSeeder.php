@@ -17,14 +17,16 @@ class SystemUserSeeder extends Seeder
         DB::table('users')->truncate();
 
         // Create a default system user
-        User::firstOrCreate(
-            ['email' => 'system@example.com'],
+        User::updateOrCreate(
+            ['email' => 'lester@hurtado.ph'], // Ensure this email matches your intention
             [
                 'name' => 'System User',
                 'password' => bcrypt('password'), // Default password
+                'mobile' => '09173011987',
+                'country' => 'PH'
             ]
         );
 
-        $this->command->info('System user created with email: system@example.com');
+        $this->command->info('System user created with email: lester@hurtado.ph');
     }
 }
