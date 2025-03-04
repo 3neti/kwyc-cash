@@ -5,6 +5,7 @@ namespace App\Actions;
 use Illuminate\Validation\ValidationException;
 use FrittenKeeZ\Vouchers\Facades\Vouchers;
 use Lorisleiva\Actions\Concerns\AsAction;
+use App\Events\CashVouchersGenerated;
 use Illuminate\Support\Collection;
 use App\Models\{Cash, User};
 
@@ -30,7 +31,10 @@ class GenerateCashVouchers
     {
         $validated = validator($params, $this->rules())->validate();
 
-        return $this->generateCashVouchers($user, $validated);
+        $collection = $this->generateCashVouchers($user, $validated);
+        CashVouchersGenerated::dispatch($user, $collection);
+
+        return $collection;
     }
 
     /**
