@@ -2,11 +2,11 @@
 
 namespace App\Actions;
 
-use App\Models\Cash;
-use App\Models\User;
+use Illuminate\Validation\ValidationException;
 use FrittenKeeZ\Vouchers\Facades\Vouchers;
-use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
+use Illuminate\Support\Collection;
+use App\Models\{Cash, User};
 
 /**
  * Generates a collection of cash vouchers for a specified user.
@@ -24,6 +24,7 @@ class GenerateCashVouchers
      * @param User $user The user to assign the cash vouchers to.
      * @param array $params The validated input parameters.
      * @return Collection The generated collection of vouchers.
+     * @throws ValidationException
      */
     public function handle(User $user, array $params): Collection
     {
@@ -95,7 +96,7 @@ class GenerateCashVouchers
      * @param User $user The owner of the voucher.
      * @return mixed The created voucher instance.
      */
-    protected function createVoucher(Cash $cash, User $user)
+    protected function createVoucher(Cash $cash, User $user): mixed
     {
         $entities = compact('cash');
         return Vouchers::withEntities(...$entities)

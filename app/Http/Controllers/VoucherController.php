@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Actions\GenerateCashVouchers;
 use FrittenKeeZ\Vouchers\Models\Voucher;
+use App\Actions\GenerateCashVouchers;
+use Illuminate\Http\Request;
 use App\Models\Cash;
 
 class VoucherController extends Controller
@@ -14,9 +14,13 @@ class VoucherController extends Controller
     /**
      * Show the voucher generation page.
      */
-    public function create()
+    public function create(): \Inertia\Response|\Inertia\ResponseFactory
     {
-        return inertia('Voucher/Generate');
+        return inertia('Voucher/Generate',[
+            'defaultVoucherValue' => config('kwyc-cash.voucher.value'),
+            'minAmount' => config('kwyc-cash.voucher.minimum'),
+            'stepAmount' => config('kwyc-cash.voucher.increment')
+        ]);
     }
 
     /**
@@ -24,16 +28,14 @@ class VoucherController extends Controller
      *
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
+     * @throws ValidationException
      */
-    public function store(Request $request)
+    public function store(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $user = $request->user();
-        $user->depositFloat(1000);
-
         $action = app(GenerateCashVouchers::class);
         $validated = Validator::make($request->all(), $action->rules())->validate();
 
-        $vouchers = GenerateCashVouchers::run($user, $validated);
+        $vouchers = GenerateCashVouchers::run($request->user(), $validated);
 
         $voucherData = $vouchers->map(function (Voucher $voucher) {
             return [

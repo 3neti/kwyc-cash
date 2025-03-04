@@ -4,18 +4,68 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
 
+import { useForm, usePage } from '@inertiajs/vue3';
+import { ref, computed, watch } from 'vue';
+
+// Define props with default values
+const props = defineProps({
+    defaultVoucherValue: {
+        type: Number,
+        default: 50, // Default voucher value
+    },
+    minAmount: {
+        type: Number,
+        default: 50, // Minimum voucher value
+    },
+    stepAmount: {
+        type: Number,
+        default: 50, // Step increment for the voucher value
+    },
+});
+
+// Form state with default values
 const form = useForm({
-    value: '',
-    qty: '',
+    value: props.defaultVoucherValue,
+    qty: 1,
     tag: '',
 });
 
 const voucherCodes = ref('');
 const statusMessage = ref('');
 
+// Get current balance from props
+const userBalance = computed(() => usePage().props.auth.user.balanceFloat ?? 0);
+
+// Format balance as currency
+const formatter = new Intl.NumberFormat('en-PH', {
+    style: 'currency',
+    currency: 'PHP',
+});
+const formattedBalance = computed(() => formatter.format(userBalance.value));
+
+// Calculate total voucher value
+const totalVoucherValue = computed(() => {
+    const value = parseFloat(form.value) || 0;
+    const qty = parseInt(form.qty) || 0;
+    return value * qty;
+});
+
+// Button visibility based on balance check
+const canGenerateVouchers = computed(() => {
+    return totalVoucherValue.value <= userBalance.value;
+});
+
+// Clear status message after 3 seconds
+watch(statusMessage, (newMessage) => {
+    if (newMessage) {
+        setTimeout(() => {
+            statusMessage.value = '';
+        }, 3000);
+    }
+});
+
+// Form submission handler
 const submit = () => {
     form.post(route('vouchers.store'), {
         onSuccess: (response) => {
@@ -27,10 +77,11 @@ const submit = () => {
             statusMessage.value = 'Failed to generate vouchers. Please try again.';
         },
         onFinish: () => {
-            form.reset();
-            setTimeout(() => {
-                statusMessage.value = '';
-            }, 5000);
+            form.reset({
+                value: props.defaultVoucherValue,
+                qty: 1,
+                tag: '',
+            });
         },
     });
 };
@@ -48,6 +99,18 @@ const submit = () => {
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <div class="p-6 bg-white text-gray-900">
+                        <!-- Status Message and Current Balance -->
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex-1">
+                                <span v-if="statusMessage" class="text-sm text-gray-600">
+                                    {{ statusMessage }}
+                                </span>
+                            </div>
+                            <div class="text-sm text-gray-600 font-semibold text-right">
+                                Current Balance: <span class="text-blue-600">{{ formattedBalance }}</span>
+                            </div>
+                        </div>
+
                         <form @submit.prevent="submit" class="space-y-6">
                             <div>
                                 <InputLabel for="value" value="Voucher Value" />
@@ -57,6 +120,8 @@ const submit = () => {
                                     class="mt-1 block w-full"
                                     v-model="form.value"
                                     required
+                                    :min="props.minAmount"
+                                    :step="props.stepAmount"
                                     placeholder="Enter voucher value"
                                 />
                                 <InputError class="mt-2" :message="form.errors.value" />
@@ -70,6 +135,7 @@ const submit = () => {
                                     class="mt-1 block w-full"
                                     v-model="form.qty"
                                     required
+                                    min="1"
                                     placeholder="Enter quantity of vouchers"
                                 />
                                 <InputError class="mt-2" :message="form.errors.qty" />
@@ -87,18 +153,23 @@ const submit = () => {
                                 <InputError class="mt-2" :message="form.errors.tag" />
                             </div>
 
-                            <div class="flex items-center">
+                            <!-- Display total voucher value and validate against balance -->
+                            <div class="flex justify-between items-center mb-4">
+                                <div class="text-sm text-gray-600">
+                                    Total Voucher Value: <span class="text-green-600">{{ formatter.format(totalVoucherValue) }}</span>
+                                </div>
+                                <div class="text-sm text-red-600" v-if="!canGenerateVouchers">
+                                    Insufficient balance for this transaction.
+                                </div>
+                            </div>
+
+                            <div class="flex justify-center mt-6">
                                 <PrimaryButton
-                                    class="me-4"
-                                    :class="{ 'opacity-25': form.processing }"
-                                    :disabled="form.processing"
+                                    :class="{ 'opacity-25': !canGenerateVouchers }"
+                                    :disabled="!canGenerateVouchers || form.processing"
                                 >
                                     Generate Vouchers
                                 </PrimaryButton>
-
-                                <span v-if="statusMessage" class="text-sm text-gray-600 ms-2">
-                                    {{ statusMessage }}
-                                </span>
                             </div>
                         </form>
 

@@ -22,4 +22,9 @@ return [
             'increment' => env('PAYMENT_INCREMENT', 50)
         ],
     ],
+    'voucher' => [
+        'value' => env('VOUCHER_VALUE', 50),
+        'minimum' => env('VOUCHER_MINIMUM', 50),
+        'increment' => env('VOUCHER_INCREMENT', 50),
+    ],
 ];
