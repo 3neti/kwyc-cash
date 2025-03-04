@@ -24,9 +24,11 @@ class RedeemCashVoucher
      * @param string $voucher_code The voucher code to redeem.
      * @param string $mobile The mobile number associated with the voucher.
      * @param string|null $country The country code (default to the Contact's default country).
+     * @param string|null $meta Any additional data.
+     * @param string|null $reference Any reference code.
      * @return bool True if the redemption was successful, otherwise false.
      */
-    public function handle(string $voucher_code, string $mobile, ?string $country = Contact::DEFAULT_COUNTRY): bool
+    public function handle(string $voucher_code, string $mobile, ?string $country = Contact::DEFAULT_COUNTRY, ?string $meta = null, ?string $reference = null): bool
     {
         try {
             $normalizedMobile = $this->normalizeMobileNumber($mobile, $country);
@@ -35,6 +37,8 @@ class RedeemCashVoucher
             $result = Vouchers::redeem($voucher_code, $contact, [
                 'mobile' => $normalizedMobile,
                 'country' => $country,
+                'meta' => $meta,
+                'reference' => $reference
             ]);
 
             // Reset error message if redemption is successful
@@ -91,6 +95,8 @@ class RedeemCashVoucher
             'voucher_code' => ['required', 'string', 'min:4'],
             'mobile' => ['required', 'string', 'min:10'],
             'country' => ['nullable', 'string', 'min:2'],
+            'meta' => ['nullable', 'string'],
+            'reference' => ['nullable', 'string'],
         ];
     }
 

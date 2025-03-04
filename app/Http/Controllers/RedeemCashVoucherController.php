@@ -25,7 +25,11 @@ class RedeemCashVoucherController extends Controller
      */
     public function create()
     {
-        return inertia()->render('Voucher/Redeem');
+        return inertia()->render('Voucher/Redeem', [
+            'referenceLabel' => config('kwyc-cash.redeem.reference.label'),
+            'defaultReference' => config('kwyc-cash.redeem.reference.value'),
+            'metaLabel' => config('kwyc-cash.redeem.meta.label')
+        ]);
     }
 
     /**

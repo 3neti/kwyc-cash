@@ -28,4 +28,13 @@ return [
         'increment' => env('VOUCHER_INCREMENT', 50),
         'tariff' => env('VOUCHER_TARIFF', 50)
     ],
+    'redeem' => [
+        'reference' => [
+            'label' => env('REDEEM_REFERENCE_LABEL', 'Reference'),
+            'value' => env('REDEEM_REFERENCE_VALUE', '')
+        ],
+        'meta' => [
+            'label' => env('REDEEM_META_LABEL', 'Meta')
+        ]
+    ],
 ];
