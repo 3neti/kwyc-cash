@@ -32,7 +32,7 @@ use App\Http\Controllers\WalletController;
 
 Route::middleware('auth')->group(function () {
     Route::resource('vouchers', VoucherController::class)->only('create', 'store');
-    Route::resource('wallet', WalletController::class)->only('create', 'store');
+    Route::resource('wallet', WalletController::class)->only('create');
 });
 
 

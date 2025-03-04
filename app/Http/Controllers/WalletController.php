@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
+use App\Actions\GenerateDepositQRCode;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -13,42 +13,35 @@ class WalletController extends Controller
      */
     public function create()
     {
-        $user = Auth::user();
-
         return Inertia::render('Auth/LoadWallet', [
-            'balance' => (float) $user->balanceFloat,
+            'defaultAmount' => config('kwyc-cash.payment.qr-code.amount'),
+            'stepAmount' => config('kwyc-cash.payment.qr-code.increment')
         ]);
     }
 
     /**
-     * Handle the deposit of wallet credits.
+     * Generate a deposit QR code.
      */
-    public function store(Request $request)
+    public function generateDepositQRCode(Request $request): \Illuminate\Http\JsonResponse
     {
-        $user = Auth::user();
-        $amount = $request->validate([
-            'amount' => ['required', 'numeric', 'min:1'],
-        ])['amount'];
-
-        // Perform the deposit
-        $user->depositFloat($amount);
-
-        return back()->with('event', [
-            'name' => 'walletUpdated',
-            'data' => [
-                'balance' => $user->balanceFloat,
-                'message' => 'Wallet updated successfully!',
-            ],
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:50'],
+            'account' => ['nullable', 'numeric', 'starts_with:0', 'max_digits:11'],
         ]);
-    }
 
-    public function generateDepositQRCode(Request $request)
-    {
+        // Prepare amount and account values
+        $amount = $validated['amount'];
+        $account = $validated['account'] ?? 'default';
+
+        // Create a unique cache key using amount and account
+        $cacheKey = "deposit_qr_{$amount}_{$account}";
+
         try {
-            $qrCode = GenerateDepositQRCode::run(
-                $validated['amount'] ?? null,
-                $validated['account'] ?? null
-            );
+            // Check if the QR code is already cached, or generate and cache it for 30 minutes
+            $qrCode = cache()->remember($cacheKey, now()->addMinutes(30), function () use ($amount, $account) {
+                logger()->info('Generating new QR code for deposit', compact('amount', 'account'));
+                return GenerateDepositQRCode::run($amount, $account);
+            });
 
             return response()->json([
                 'success' => true,
@@ -56,6 +49,8 @@ class WalletController extends Controller
             ]);
 
         } catch (\Exception $e) {
+            logger()->error('Failed to generate deposit QR code', ['error' => $e->getMessage()]);
+
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
