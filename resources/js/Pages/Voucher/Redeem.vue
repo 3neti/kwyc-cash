@@ -5,7 +5,10 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+
+// Import lodash debounce
+import { debounce } from 'lodash';
 
 // Define props with default values, including metaLabel and reference message
 const props = defineProps({
@@ -37,44 +40,36 @@ const form = useForm({
 
 const isCheckingStatus = ref(false);
 const statusMessage = ref('');
-const pollInterval = ref(null);
+const referenceMessage = computed(() =>
+    form.reference ? `${props.referenceLabel}: ${form.reference}` : ''
+);
 
-// Computed property to generate the formatted reference message
-const referenceMessage = computed(() => {
-    return form.reference
-        ? `${props.referenceLabel}: ${form.reference}`
-        : '';
-});
+// Voucher details message
+const voucherDetailsMessage = ref('');
 
 // Start polling for voucher redemption status
 const startPolling = (voucherCode) => {
     isCheckingStatus.value = true;
-    clearInterval(pollInterval.value);
-
-    pollInterval.value = setInterval(() => {
-        axios
-            .get(route('redeem.show', { voucher: voucherCode }))
-            .then((response) => {
-                if (response.data.status === 'completed') {
-                    setStatusMessage('Cash disbursed successfully!');
-                    stopPolling(true);
-                } else if (response.data.status === 'pending') {
-                    setStatusMessage('Voucher redeemed. Waiting for disbursement...');
-                }
-            })
-            .catch(() => {
-                setStatusMessage('Error checking voucher status. Please try again.');
+    axios.get(route('redeem.show', { voucher: voucherCode }))
+        .then((response) => {
+            if (response.data.status === 'completed') {
+                setStatusMessage('Cash disbursed successfully!');
                 stopPolling(true);
-            });
-    }, 3000); // Poll every 3 seconds
+            } else if (response.data.status === 'pending') {
+                setStatusMessage('Voucher redeemed. Waiting for disbursement...');
+            }
+        })
+        .catch(() => {
+            setStatusMessage('Error checking voucher status. Please try again.');
+            stopPolling(true);
+        });
 };
 
 // Stop polling and reset the form if needed
 const stopPolling = (resetForm = false) => {
     isCheckingStatus.value = false;
-    clearInterval(pollInterval.value);
     if (resetForm) {
-        resetFormFields();
+        form.reset('voucher_code', 'mobile', 'country', 'meta', 'reference');
     }
 };
 
@@ -96,10 +91,33 @@ const setStatusMessage = (message) => {
     }, 5000);
 };
 
-// Explicit form reset function
-const resetFormFields = () => {
-    form.reset('voucher_code', 'mobile', 'country', 'meta', 'reference');
-};
+// Fetch voucher details with a debounce
+const fetchVoucherDetails = debounce(() => {
+    if (form.voucher_code.length < 4) {
+        voucherDetailsMessage.value = '';
+        return;
+    }
+
+    axios
+        .get(route('api.vouchers.show', { voucherCode: form.voucher_code }))
+        .then((response) => {
+            if (response.data.status === 'success') {
+                const { amount, mobile, disbursed } = response.data.data;
+                voucherDetailsMessage.value = `
+                    ₱${amount.toFixed(2)} -
+                    ${disbursed ? '✅ Disbursed' : '🟢 Available'}
+                    ${mobile ? `to ${mobile}` : ''}`.trim();
+            } else {
+                voucherDetailsMessage.value = 'Invalid or expired voucher code.';
+            }
+        })
+        .catch(() => {
+            voucherDetailsMessage.value = 'Error retrieving voucher details.';
+        });
+}, 500);
+
+// Watch for changes to the voucher code input
+watch(() => form.voucher_code, fetchVoucherDetails);
 </script>
 
 <template>
@@ -107,6 +125,7 @@ const resetFormFields = () => {
         <Head title="Redeem Voucher" />
 
         <form @submit.prevent="submit" class="space-y-4">
+            <!-- Voucher Code Input -->
             <div>
                 <InputLabel for="voucher_code" value="Voucher Code" />
                 <TextInput
@@ -119,8 +138,13 @@ const resetFormFields = () => {
                     placeholder="Enter voucher code"
                 />
                 <InputError class="mt-2" :message="form.errors.voucher_code" />
+                <!-- Display Voucher Details under the Input -->
+                <p v-if="voucherDetailsMessage" class="text-xs text-gray-500 mt-1">
+                    {{ voucherDetailsMessage }}
+                </p>
             </div>
 
+            <!-- Mobile Number Input -->
             <div>
                 <InputLabel for="mobile" value="Mobile Number" />
                 <TextInput
@@ -132,19 +156,6 @@ const resetFormFields = () => {
                     placeholder="e.g., 09171234567"
                 />
                 <InputError class="mt-2" :message="form.errors.mobile" />
-            </div>
-
-            <!-- Hidden Country Code Field -->
-            <div v-show="false">
-                <InputLabel for="country" value="Country Code" />
-                <TextInput
-                    id="country"
-                    type="text"
-                    class="mt-1 block w-full"
-                    v-model="form.country"
-                    placeholder="e.g., PH"
-                />
-                <InputError class="mt-2" :message="form.errors.country" />
             </div>
 
             <!-- Optional Meta Field with Dynamic Label -->

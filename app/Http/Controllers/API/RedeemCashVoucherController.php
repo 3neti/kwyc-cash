@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Validator;
 use FrittenKeeZ\Vouchers\Models\Voucher;
 use App\Http\Controllers\Controller;
 use App\Actions\RedeemCashVoucher;
-Use Illuminate\Http\JsonResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Data\VoucherData;
 
@@ -57,7 +57,13 @@ class RedeemCashVoucherController extends Controller
      */
     public function status(string $voucherCode): JsonResponse
     {
-        $voucher = Voucher::where('code', $voucherCode)->first();
+        // Validate the voucher code input
+        $validated = Validator::make(
+            ['voucher_code' => $voucherCode],
+            ['voucher_code' => ['required', 'string', 'min:4']]
+        )->validate();
+
+        $voucher = Voucher::where('code', $validated['voucher_code'])->first();
 
         if (!$voucher) {
             return response()->json([
@@ -73,6 +79,38 @@ class RedeemCashVoucherController extends Controller
         return response()->json([
             'status' => $status,
             'data' => ['code' => $voucher->code],
+        ]);
+    }
+
+    /**
+     * Display detailed information about a specific voucher.
+     *
+     * @param string $voucherCode
+     * @return JsonResponse
+     */
+    public function show(string $voucherCode): JsonResponse
+    {
+        // Validate the voucher code format
+        $validated = Validator::make(
+            ['voucher_code' => $voucherCode],
+            ['voucher_code' => ['required', 'string', 'min:4']]
+        )->validate();
+
+        $voucher = Voucher::where('code', $validated['voucher_code'])->first();
+
+        if (!$voucher) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Voucher not found',
+            ], 404);
+        }
+
+        $voucherData = VoucherData::fromModel($voucher);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Voucher details retrieved successfully.',
+            'data' => $voucherData->toArray(),
         ]);
     }
 }
