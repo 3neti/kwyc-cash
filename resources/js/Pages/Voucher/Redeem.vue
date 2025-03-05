@@ -16,6 +16,10 @@ const props = defineProps({
         type: String,
         default: 'Additional Info (Optional)',
     },
+    defaultMeta: {
+        type: String,
+        default: '',
+    },
     referenceLabel: {
         type: String,
         default: 'Agent',
@@ -34,14 +38,22 @@ const form = useForm({
     voucher_code: params.get('voucher_code') ?? '',
     mobile: params.get('mobile') ?? '',
     country: params.get('country') ?? 'PH',
-    meta: params.get('meta') ?? '',
+    meta: params.get('meta') ?? props.defaultMeta,
     reference: params.get('reference') ?? props.defaultReference,
 });
 
+// Dynamic labels with URL param precedence
+const dynamicMetaLabel = computed(() => params.get('metaLabel') ?? props.metaLabel);
+const dynamicReferenceLabel = computed(() => params.get('referenceLabel') ?? props.referenceLabel);
+
+// Dynamic placeholder for the meta field
+const dynamicMetaPlaceholder = computed(() => `Enter ${dynamicMetaLabel.value}`);
+
+// Status and messages
 const isCheckingStatus = ref(false);
 const statusMessage = ref('');
 const referenceMessage = computed(() =>
-    form.reference ? `${props.referenceLabel}: ${form.reference}` : ''
+    form.reference ? `${dynamicReferenceLabel.value}: ${form.reference}` : ''
 );
 
 // Voucher details message
@@ -160,13 +172,13 @@ watch(() => form.voucher_code, fetchVoucherDetails);
 
             <!-- Optional Meta Field with Dynamic Label -->
             <div>
-                <InputLabel for="meta" :value="props.metaLabel" />
+                <InputLabel for="meta" :value="dynamicMetaLabel" />
                 <TextInput
                     id="meta"
                     type="text"
                     class="mt-1 block w-full"
                     v-model="form.meta"
-                    placeholder="Enter additional info"
+                    :placeholder="dynamicMetaPlaceholder"
                 />
                 <InputError class="mt-2" :message="form.errors.meta" />
             </div>

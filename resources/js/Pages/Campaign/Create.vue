@@ -1,9 +1,9 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 
 import { ref, computed, watch, onMounted } from 'vue';
 import QRCode from 'qrcode';
@@ -65,6 +65,16 @@ onMounted(() => {
 const toggleOptionalFields = () => {
     showOptionalFields.value = !showOptionalFields.value;
 };
+
+// Function to download the QR code image
+const downloadQRCode = () => {
+    if (!qrCodeDataUrl.value) return;
+
+    const link = document.createElement('a');
+    link.href = qrCodeDataUrl.value;
+    link.download = 'campaign-qr-code.png';
+    link.click();
+};
 </script>
 
 <template>
@@ -90,6 +100,9 @@ const toggleOptionalFields = () => {
                                 alt="Campaign QR Code"
                                 class="mx-auto"
                             />
+                            <PrimaryButton class="mt-4" @click="downloadQRCode">
+                                Download QR Code
+                            </PrimaryButton>
                         </div>
                     </div>
                 </div>
