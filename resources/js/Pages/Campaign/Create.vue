@@ -5,18 +5,24 @@ import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 
-import { ref, watch, onMounted } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import QRCode from 'qrcode';
+
+// Define props with default values
+const props = defineProps({
+    inputs: {
+        type: String,
+        default: '',
+    }
+});
 
 // Form state with default values
 const form = ref({
     voucher_code: '',
     mobile: '',
     country: 'PH',
-    meta: '',
-    reference: '',
-    metaLabel: '',
     referenceLabel: '',
+    inputs: props.inputs
 });
 
 // Show optional fields toggle
@@ -32,10 +38,18 @@ const generateLink = () => {
     if (form.value.voucher_code) params.append('voucher_code', form.value.voucher_code);
     if (form.value.mobile) params.append('mobile', form.value.mobile);
     if (form.value.country) params.append('country', form.value.country);
-    if (form.value.meta) params.append('meta', form.value.meta);
-    if (form.value.reference) params.append('reference', form.value.reference);
-    if (form.value.metaLabel) params.append('metaLabel', form.value.metaLabel);
     if (form.value.referenceLabel) params.append('referenceLabel', form.value.referenceLabel);
+
+    // Properly append the inputs as a JSON string if it's a valid object-like string
+    if (form.value.inputs) {
+        try {
+            // Validate and stringify the inputs safely
+            const inputsObject = JSON.parse(form.value.inputs.replace(/'/g, '"'));
+            params.append('inputs', JSON.stringify(inputsObject));
+        } catch (e) {
+            console.error('Invalid inputs JSON format', e);
+        }
+    }
 
     generatedLink.value = `${baseUrl}?${params.toString()}`;
     generateQRCode();
@@ -75,6 +89,30 @@ const downloadQRCode = () => {
     link.download = 'campaign-qr-code.png';
     link.click();
 };
+
+// Reactive state to track JSON validation
+const isJsonValid = ref(true);
+const parsedInputs = ref({});
+
+// Watcher to validate and parse the inputs as JSON
+watch(() => form.value.inputs, (newVal) => {
+    if (!newVal) {
+        isJsonValid.value = true;
+        parsedInputs.value = {};
+        return;
+    }
+
+    try {
+        // Attempt to parse as JSON and validate
+        parsedInputs.value = JSON.parse(newVal.replace(/'/g, '"'));
+        isJsonValid.value = true;
+    } catch (e) {
+        isJsonValid.value = false;
+        parsedInputs.value = {};
+        console.error('Invalid JSON format:', e);
+    }
+});
+
 </script>
 
 <template>
@@ -110,58 +148,18 @@ const downloadQRCode = () => {
                 <!-- Form Section -->
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <form class="space-y-6">
-                        <!-- Meta Label Field -->
+                        <!-- Inputs Field -->
                         <div>
-                            <InputLabel for="metaLabel" value="Meta Label" />
+                            <InputLabel for="inputs" value="Inputs" />
                             <TextInput
-                                id="metaLabel"
+                                id="inputs"
                                 type="text"
                                 class="mt-1 block w-full"
-                                v-model="form.metaLabel"
-                                placeholder="e.g., Name"
+                                v-model="form.inputs"
+                                placeholder="Enter inputs as JSON"
+                                :class="{ 'border-red-500': !isJsonValid }"
                             />
-                            <InputError class="mt-2" />
-                        </div>
-
-                        <!-- Meta Field -->
-                        <div>
-                            <InputLabel for="meta" value="Meta Default Value" />
-                            <TextInput
-                                id="meta"
-                                type="text"
-                                class="mt-1 block w-full"
-                                v-model="form.meta"
-                                required
-                                placeholder="Enter default meta value"
-                            />
-                            <InputError class="mt-2" />
-                        </div>
-
-                        <!-- Reference Label Field -->
-                        <div>
-                            <InputLabel for="referenceLabel" value="Reference Label" />
-                            <TextInput
-                                id="referenceLabel"
-                                type="text"
-                                class="mt-1 block w-full"
-                                v-model="form.referenceLabel"
-                                placeholder="e.g., Agent Name"
-                            />
-                            <InputError class="mt-2" />
-                        </div>
-
-                        <!-- Reference Field -->
-                        <div>
-                            <InputLabel for="reference" value="Reference Default Value" />
-                            <TextInput
-                                id="reference"
-                                type="text"
-                                class="mt-1 block w-full"
-                                v-model="form.reference"
-                                required
-                                placeholder="Enter default reference value"
-                            />
-                            <InputError class="mt-2" />
+                            <InputError class="mt-2" :message="!isJsonValid ? 'Invalid JSON format' : ''" />
                         </div>
 
                         <!-- Optional Fields Toggle -->
@@ -210,6 +208,19 @@ const downloadQRCode = () => {
                                     v-model="form.country"
                                     placeholder="e.g., PH"
                                 />
+                            </div>
+
+                            <!-- Reference Label Field -->
+                            <div>
+                                <InputLabel for="referenceLabel" value="Reference Label" />
+                                <TextInput
+                                    id="referenceLabel"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    v-model="form.referenceLabel"
+                                    placeholder="e.g., Agent Name"
+                                />
+                                <InputError class="mt-2" />
                             </div>
                         </div>
                     </form>

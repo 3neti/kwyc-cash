@@ -27,8 +27,6 @@ class RedeemCashVoucherController extends Controller
     {
         return inertia()->render('Voucher/Redeem', [
             'referenceLabel' => config('kwyc-cash.redeem.reference.label'),
-            'defaultReference' => config('kwyc-cash.redeem.reference.value'),
-            'metaLabel' => config('kwyc-cash.redeem.meta.label')
         ]);
     }
 
@@ -39,7 +37,6 @@ class RedeemCashVoucherController extends Controller
     {
         // Start timer
         $startTime = microtime(true);
-
         $action = app(RedeemCashVoucher::class);
 
         // Validate the incoming request

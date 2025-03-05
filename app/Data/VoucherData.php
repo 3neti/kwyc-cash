@@ -28,6 +28,7 @@ class VoucherData extends Data
      */
     public function __construct(
         public string $code,
+        public array $metadata,
         public bool $redeemed,
         public bool $expired,
         public string $created_at,
@@ -49,10 +50,12 @@ class VoucherData extends Data
     public static function fromModel(Voucher $voucher): VoucherData
     {
         $mobile = $voucher->redeemers->first()?->redeemer->mobile ?? null;
+        $metadata = $voucher->redeemers->first()?->getAttribute('metadata') ?? [];
         $cash = $voucher->getEntities(Cash::class)->first();
 
         return new self(
             code: $voucher->getAttribute('code'),
+            metadata: $metadata,
             redeemed: $voucher->isRedeemed(),
             expired: $voucher->isExpired(),
             created_at: $voucher->created_at->format('Y-m-d H:i:s'),

@@ -5,6 +5,7 @@ namespace App\Actions;
 use FrittenKeeZ\Vouchers\Exceptions\VoucherAlreadyRedeemedException;
 use FrittenKeeZ\Vouchers\Exceptions\VoucherNotFoundException;
 use FrittenKeeZ\Vouchers\Facades\Vouchers;
+use FrittenKeeZ\Vouchers\Models\Voucher;
 use Lorisleiva\Actions\Concerns\AsAction;
 use Lorisleiva\Actions\ActionRequest;
 use App\Models\Contact;
@@ -24,22 +25,19 @@ class RedeemCashVoucher
      * @param string $voucher_code The voucher code to redeem.
      * @param string $mobile The mobile number associated with the voucher.
      * @param string|null $country The country code (default to the Contact's default country).
-     * @param string|null $meta Any additional data.
-     * @param string|null $reference Any reference code.
+     * @param array|null $metadata Any additional data.
      * @return bool True if the redemption was successful, otherwise false.
      */
-    public function handle(string $voucher_code, string $mobile, ?string $country = Contact::DEFAULT_COUNTRY, ?string $meta = null, ?string $reference = null): bool
+    public function handle(string $voucher_code, string $mobile, ?string $country = Contact::DEFAULT_COUNTRY, ?array $inputs = null): bool
     {
         try {
             $normalizedMobile = $this->normalizeMobileNumber($mobile, $country);
             $contact = $this->getOrCreateContact($normalizedMobile, $country);
 
-            $result = Vouchers::redeem($voucher_code, $contact, [
+            $result = Vouchers::redeem($voucher_code, $contact, array_merge([
                 'mobile' => $normalizedMobile,
-                'country' => $country,
-                'meta' => $meta,
-                'reference' => $reference
-            ]);
+                'country' => $country
+            ], $inputs));
 
             // Reset error message if redemption is successful
             if ($result) {
@@ -95,8 +93,7 @@ class RedeemCashVoucher
             'voucher_code' => ['required', 'string', 'min:4'],
             'mobile' => ['required', 'string', 'min:10'],
             'country' => ['nullable', 'string', 'min:2'],
-            'meta' => ['nullable', 'string'],
-            'reference' => ['nullable', 'string'],
+            'inputs' => ['nullable', 'array']
         ];
     }
 

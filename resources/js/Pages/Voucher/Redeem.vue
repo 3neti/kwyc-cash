@@ -8,36 +8,31 @@ import { Head, useForm } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 import { debounce } from 'lodash';
 
-// Define props with default values, including metaLabel and reference message
+// Define props with default values
 const props = defineProps({
-    metaLabel: {
-        type: String,
-        default: 'Additional Info (Optional)',
-    },
-    defaultMeta: {
-        type: String,
-        default: '',
-    },
     referenceLabel: {
         type: String,
         default: 'Agent',
-    },
-    defaultReference: {
-        type: String,
-        default: '',
-    },
+    }
 });
 
 // Extract URL search parameters
 const params = new URLSearchParams(window.location.search);
+
+// Parse the `inputs` parameter from the URL (expected to be a JSON string)
+let parsedInputs = {};
+try {
+    parsedInputs = JSON.parse(params.get('inputs')) ?? {};
+} catch (e) {
+    console.warn('Invalid JSON format for inputs parameter');
+}
 
 // Initialize form with default values from URL parameters or props
 const form = useForm({
     voucher_code: params.get('voucher_code') ?? '',
     mobile: params.get('mobile') ?? '',
     country: params.get('country') ?? 'PH',
-    meta: params.get('meta') ?? props.defaultMeta,
-    reference: params.get('reference') ?? props.defaultReference,
+    inputs: parsedInputs
 });
 
 // Dynamic labels with URL param precedence
@@ -50,9 +45,10 @@ const dynamicMetaPlaceholder = computed(() => `Enter ${dynamicMetaLabel.value}`)
 // Status and messages
 const isCheckingStatus = ref(false);
 const statusMessage = ref('');
-const referenceMessage = computed(() =>
-    form.reference ? `${dynamicReferenceLabel.value}: ${form.reference}` : ''
-);
+const referenceMessage = computed(() => {
+    const reference = form.inputs?.reference ?? '';
+    return reference ? `${dynamicReferenceLabel.value}: ${reference}` : '';
+});
 
 // Voucher details message
 const voucherDetailsMessage = ref('');
@@ -100,7 +96,7 @@ const stopPolling = (resetForm = false) => {
     clearInterval(pollInterval);
     pollInterval = null;
     if (resetForm) {
-        form.reset('voucher_code', 'mobile', 'country', 'meta', 'reference');
+        form.reset('voucher_code', 'mobile', 'country');
     }
 };
 
@@ -146,6 +142,14 @@ const fetchVoucherDetails = debounce(() => {
 
 // Watch for changes to the voucher code input
 watch(() => form.voucher_code, fetchVoucherDetails);
+
+const toTitleCase = (str) => {
+    if (!str || typeof str !== 'string') return ''; // Ensure str is a non-empty string
+    return str.replace(/([a-z])([A-Z])/g, '$1 $2') // camelCase to spaced
+        .replace(/_/g, ' ') // snake_case to spaced
+        .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize each word
+};
+
 </script>
 
 <template>
@@ -185,31 +189,29 @@ watch(() => form.voucher_code, fetchVoucherDetails);
                 <InputError class="mt-2" :message="form.errors.mobile" />
             </div>
 
-            <!-- Optional Meta Field with Dynamic Label -->
-            <div>
-                <InputLabel for="meta" :value="dynamicMetaLabel" />
-                <TextInput
-                    id="meta"
-                    type="text"
-                    class="mt-1 block w-full"
-                    v-model="form.meta"
-                    :placeholder="dynamicMetaPlaceholder"
-                />
-                <InputError class="mt-2" :message="form.errors.meta" />
+            <hr class="bevel-line" />
+
+            <!-- Dynamic Fields -->
+            <div v-for="(value, key) in form.inputs" :key="key">
+                <template v-if="key !== 'reference'">
+                    <InputLabel :for="key" :value="toTitleCase(key)" />
+                    <TextInput
+                        :id="key"
+                        type="text"
+                        class="mt-1 block w-full"
+                        v-model="form.inputs[key]"
+                        :placeholder="`Enter ${toTitleCase(key)}`"
+                    />
+                    <InputError class="mt-2" />
+                </template>
             </div>
 
             <div class="mt-4 flex items-center justify-between gap-2">
                 <!-- Reference Message aligned to the left -->
-                <span
-                    v-if="referenceMessage"
-                    class="text-sm text-gray-700 font-semibold"
-                >
-                    {{ referenceMessage }}
-                </span>
-
+                <span class="text-sm text-gray-700 font-semibold min-w-[200px]">{{ referenceMessage || '\u00A0' }}</span>
                 <!-- Redeem Voucher Button -->
                 <PrimaryButton
-                    class="ms-4"
+                    class="ms-auto"
                     :class="{ 'opacity-25': form.processing || isCheckingStatus }"
                     :disabled="form.processing || isCheckingStatus"
                 >
@@ -226,3 +228,12 @@ watch(() => form.voucher_code, fetchVoucherDetails);
         </form>
     </GuestLayout>
 </template>
+
+<style scoped>
+.bevel-line {
+    border: 0;
+    height: 1px;
+    background: linear-gradient(to right, #d1d5db, #f9fafb, #d1d5db);
+    margin: 24px 0;
+}
+</style>

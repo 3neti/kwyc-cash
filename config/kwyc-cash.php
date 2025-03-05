@@ -33,8 +33,8 @@ return [
             'label' => env('REDEEM_REFERENCE_LABEL', 'Reference'),
             'value' => env('REDEEM_REFERENCE_VALUE', '')
         ],
-        'meta' => [
-            'label' => env('REDEEM_META_LABEL', 'Meta')
-        ]
     ],
+    'campaign' => [
+        'inputs' => env('CAMPAIGN_INPUTS', '{"name": null}')
+    ]
 ];

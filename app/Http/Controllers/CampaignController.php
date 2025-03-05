@@ -19,7 +19,9 @@ class CampaignController extends Controller
      */
     public function create()
     {
-        return inertia('Campaign/Create');
+        return inertia('Campaign/Create', [
+            'inputs' => config('kwyc-cash.campaign.inputs')
+        ]);
     }
 
     /**
