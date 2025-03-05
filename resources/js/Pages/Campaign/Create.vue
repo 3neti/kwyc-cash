@@ -5,7 +5,7 @@ import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import QRCode from 'qrcode';
 
 // Form state with default values
@@ -26,7 +26,7 @@ const qrCodeDataUrl = ref('');
 
 // Generate the link based on form inputs
 const generateLink = () => {
-    const baseUrl = route('redeem.create', {}, false);
+    const baseUrl = `${window.location.origin}${route('redeem.create', {}, false)}`;
     const params = new URLSearchParams();
 
     if (form.value.voucher_code) params.append('voucher_code', form.value.voucher_code);
