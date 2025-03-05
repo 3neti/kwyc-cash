@@ -6,8 +6,6 @@ import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
-
-// Import lodash debounce
 import { debounce } from 'lodash';
 
 // Define props with default values, including metaLabel and reference message
@@ -59,27 +57,48 @@ const referenceMessage = computed(() =>
 // Voucher details message
 const voucherDetailsMessage = ref('');
 
+// Polling variables
+let pollInterval = null;
+const maxPollingTime = 60000; // Stop polling after 60 seconds
+
 // Start polling for voucher redemption status
 const startPolling = (voucherCode) => {
     isCheckingStatus.value = true;
-    axios.get(route('redeem.show', { voucher: voucherCode }))
-        .then((response) => {
-            if (response.data.status === 'completed') {
-                setStatusMessage('Cash disbursed successfully!');
+
+    // Set a polling interval every 3 seconds
+    pollInterval = setInterval(() => {
+        axios.get(route('redeem.show', { voucher: voucherCode }))
+            .then((response) => {
+                if (response.data.status === 'completed') {
+                    setStatusMessage('✅ Cash disbursed successfully!');
+                    stopPolling(true);
+                } else if (response.data.status === 'pending') {
+                    setStatusMessage('🟢 Voucher redeemed. Waiting for disbursement...');
+                } else {
+                    setStatusMessage('⚠️ Unexpected status received. Stopping polling.');
+                    stopPolling(true);
+                }
+            })
+            .catch(() => {
+                setStatusMessage('❌ Error checking voucher status. Please try again.');
                 stopPolling(true);
-            } else if (response.data.status === 'pending') {
-                setStatusMessage('Voucher redeemed. Waiting for disbursement...');
-            }
-        })
-        .catch(() => {
-            setStatusMessage('Error checking voucher status. Please try again.');
+            });
+    }, 3000);
+
+    // Automatically stop polling after a maximum duration
+    setTimeout(() => {
+        if (isCheckingStatus.value) {
+            setStatusMessage('⏳ Polling timed out. Please try again.');
             stopPolling(true);
-        });
+        }
+    }, maxPollingTime);
 };
 
 // Stop polling and reset the form if needed
 const stopPolling = (resetForm = false) => {
     isCheckingStatus.value = false;
+    clearInterval(pollInterval);
+    pollInterval = null;
     if (resetForm) {
         form.reset('voucher_code', 'mobile', 'country', 'meta', 'reference');
     }
@@ -89,18 +108,15 @@ const stopPolling = (resetForm = false) => {
 const submit = () => {
     form.post(route('redeem.store'), {
         onFinish: () => {
-            setStatusMessage('Processing... Please wait.');
+            setStatusMessage('⏳ Processing... Please wait.');
             startPolling(form.voucher_code);
         },
     });
 };
 
-// Set status message and auto-dismiss after 5 seconds
+// Set status message and maintain visibility
 const setStatusMessage = (message) => {
     statusMessage.value = message;
-    setTimeout(() => {
-        statusMessage.value = '';
-    }, 5000);
 };
 
 // Fetch voucher details with a debounce
@@ -120,11 +136,11 @@ const fetchVoucherDetails = debounce(() => {
                     ${disbursed ? '✅ Disbursed' : '🟢 Available'}
                     ${mobile ? `to ${mobile}` : ''}`.trim();
             } else {
-                voucherDetailsMessage.value = 'Invalid or expired voucher code.';
+                voucherDetailsMessage.value = '⚠️ Invalid or expired voucher code.';
             }
         })
         .catch(() => {
-            voucherDetailsMessage.value = 'Error retrieving voucher details.';
+            voucherDetailsMessage.value = '❌ Error retrieving voucher details.';
         });
 }, 500);
 
@@ -150,7 +166,6 @@ watch(() => form.voucher_code, fetchVoucherDetails);
                     placeholder="Enter voucher code"
                 />
                 <InputError class="mt-2" :message="form.errors.voucher_code" />
-                <!-- Display Voucher Details under the Input -->
                 <p v-if="voucherDetailsMessage" class="text-xs text-gray-500 mt-1">
                     {{ voucherDetailsMessage }}
                 </p>
@@ -192,14 +207,6 @@ watch(() => form.voucher_code, fetchVoucherDetails);
                     {{ referenceMessage }}
                 </span>
 
-                <!-- Status Message aligned to the left of the button -->
-                <span
-                    v-if="statusMessage"
-                    class="text-sm text-gray-500 transition-opacity duration-500 min-w-[200px] text-right"
-                >
-                    {{ statusMessage }}
-                </span>
-
                 <!-- Redeem Voucher Button -->
                 <PrimaryButton
                     class="ms-4"
@@ -208,6 +215,13 @@ watch(() => form.voucher_code, fetchVoucherDetails);
                 >
                     Redeem Voucher
                 </PrimaryButton>
+            </div>
+
+            <!-- Permanent Status Message Area -->
+            <div class="mt-4 min-h-[40px]">
+                <p class="text-sm text-gray-500">
+                    {{ statusMessage }}
+                </p>
             </div>
         </form>
     </GuestLayout>
