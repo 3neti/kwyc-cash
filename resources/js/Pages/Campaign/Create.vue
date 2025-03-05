@@ -128,9 +128,11 @@ watch(() => form.value.inputs, (newVal) => {
                 <!-- QR Code and Link Display -->
                 <div class="bg-white shadow-sm sm:rounded-lg p-6 space-y-4">
                     <div class="text-center">
-                        <h3 class="text-lg font-semibold mb-2">Shareable Campaign Link</h3>
+<!--                        <h3 class="text-lg font-semibold mb-2">Campaign</h3>-->
                         <p class="text-blue-500 font-medium mb-4 break-all">
-                            <a :href="generatedLink" target="_blank">{{ generatedLink }}</a>
+                            <a :href="generatedLink" target="_blank" class="underline" :title="generatedLink">
+                                Claim Here
+                            </a>
                         </p>
                         <div v-if="qrCodeDataUrl" class="mt-4">
                             <img
