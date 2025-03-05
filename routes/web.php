@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\RedeemCashVoucherController;
+use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -33,6 +34,7 @@ use App\Http\Controllers\WalletController;
 Route::middleware('auth')->group(function () {
     Route::resource('vouchers', VoucherController::class)->only('index', 'create', 'store');
     Route::resource('wallet', WalletController::class)->only('create');
+    Route::resource('campaign', CampaignController::class)->only('create');
 });
 
 

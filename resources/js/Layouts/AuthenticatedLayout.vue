@@ -57,6 +57,12 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     List
                                 </NavLink>
+                                <NavLink
+                                    :href="route('campaign.create')"
+                                    :active="route().current('campaign.create')"
+                                >
+                                    Campaign
+                                </NavLink>
                             </div>
                         </div>
 
