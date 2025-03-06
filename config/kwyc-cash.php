@@ -35,6 +35,7 @@ return [
         ],
     ],
     'campaign' => [
-        'inputs' => env('CAMPAIGN_INPUTS', '{"name": null}')
+        'inputs' => env('CAMPAIGN_INPUTS', '{"name": null}'),
+        'available-inputs' => env('CAMPAIGN_AVAILABLE_INPUTS', 'name, first_name, last_name, reference, location, code')
     ]
 ];

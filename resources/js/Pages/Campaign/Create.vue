@@ -13,6 +13,10 @@ const props = defineProps({
     inputs: {
         type: String,
         default: '',
+    },
+    availableInputs: {
+        type: String,
+        default: '',
     }
 });
 
@@ -94,6 +98,47 @@ const downloadQRCode = () => {
 const isJsonValid = ref(true);
 const parsedInputs = ref({});
 
+const isChecked = (input) => {
+    return parsedInputs.value && parsedInputs.value.hasOwnProperty(input);
+};
+
+// Add or remove input field based on checkbox selection
+
+const toggleInputField = (input) => {
+    let currentInputs = {};
+
+    try {
+        // Parse the form inputs if valid, otherwise default to an empty object
+        currentInputs = form.value.inputs ? JSON.parse(form.value.inputs) : {};
+    } catch (e) {
+        console.warn('Invalid JSON format in inputs');
+    }
+
+    // Toggle the input field in the JSON
+    if (currentInputs.hasOwnProperty(input)) {
+        delete currentInputs[input]; // Uncheck: remove the field
+    } else {
+        currentInputs[input] = null; // Check: add the field with a default null value
+    }
+
+    // Update the form inputs as a JSON string
+    form.value.inputs = JSON.stringify(currentInputs);
+};
+
+onMounted(() => {
+    generateLink(); // Generate the initial link
+
+    // Parse the initial inputs from form.value.inputs and set checkboxes accordingly
+    try {
+        const initialInputs = form.value.inputs ? JSON.parse(form.value.inputs) : {};
+
+        // Update parsedInputs to match the form.inputs
+        parsedInputs.value = { ...initialInputs };
+    } catch (e) {
+        console.warn('Invalid JSON format in initial inputs on mount', e);
+    }
+});
+
 // Watcher to validate and parse the inputs as JSON
 watch(() => form.value.inputs, (newVal) => {
     if (!newVal) {
@@ -150,6 +195,27 @@ watch(() => form.value.inputs, (newVal) => {
                 <!-- Form Section -->
                 <div class="bg-white shadow-sm sm:rounded-lg p-6">
                     <form class="space-y-6">
+                        <!-- Bounding Box for All Checkboxes -->
+                        <div class="border border-gray-300 bg-white rounded-md p-4 shadow-sm">
+                            <h4 class="text-sm font-semibold text-gray-600 mb-2">Available Inputs</h4>
+                            <!-- Dynamic Checkboxes for Available Inputs -->
+                            <div class="flex flex-wrap gap-2">
+                                <label
+                                    v-for="input in props.availableInputs.split(',').map(i => i.trim())"
+                                    :key="input"
+                                    class="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-md"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        :checked="isChecked(input)"
+                                        @change="toggleInputField(input)"
+                                        class="form-checkbox text-blue-600 rounded-sm"
+                                    />
+                                    <span class="text-xs text-gray-700 whitespace-nowrap">{{ input }}</span>
+                                </label>
+                            </div>
+                        </div>
+
                         <!-- Inputs Field -->
                         <div>
                             <InputLabel for="inputs" value="Inputs" />
