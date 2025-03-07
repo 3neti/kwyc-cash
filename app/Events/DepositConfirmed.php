@@ -7,8 +7,10 @@ use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Support\Carbon;
 use App\Models\User;
+
 
 /**
  * Event broadcast when a deposit is confirmed.
@@ -39,6 +41,7 @@ class DepositConfirmed implements ShouldBroadcast
     {
         return [
             new PrivateChannel('user.' . $this->user->id),
+            new Channel('mobile'),
         ];
     }
 

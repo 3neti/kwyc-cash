@@ -31,16 +31,16 @@ class ConfirmController extends Controller
             'mobile' => ['required', (new Phone)->type('mobile')->country('PH')],
         ]);
 
-        // Attempt to find the user by mobile number, falling back to the account number if needed
-        $user = User::where('mobile', $validated['mobile'])
-            ->orWhere('mobile', $validated['account'])
+        // Attempt to find the user by account number (nominated mobile number),
+        // falling back to the mobile number if needed
+        $user = User::where('mobile', $validated['account'])
+            ->orWhere('mobile', $validated['mobile'])
             ->first();
 
         if ($user instanceof User) {
             try {
                 // Deposit the specified amount into the user's wallet
                 $transaction = $user->depositFloat($validated['amount']);
-//                $user->wallet->refreshBalance();
 
                 // Dispatch event with the user and the deposited amount
                 DepositConfirmed::dispatch($user, $validated['amount'], $transaction->updated_at);

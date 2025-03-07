@@ -37,8 +37,9 @@ Route::middleware('auth')->group(function () {
     Route::resource('campaign', CampaignController::class)->only('create');
 });
 
+use App\Http\Controllers\Auth\MobileAuthController;
 
-
-
+Route::post('/auth/login-by-mobile', [MobileAuthController::class, 'loginByMobile'])
+    ->name('auth.login-by-mobile');
 
 require __DIR__.'/auth.php';

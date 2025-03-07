@@ -1,22 +1,82 @@
 <script setup>
-import { Head, Link } from '@inertiajs/vue3';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import { Head } from '@inertiajs/vue3';
+import { ref, computed, onMounted } from 'vue';
+import axios from 'axios';
 
-defineProps({
-    canLogin: {
-        type: Boolean,
-    },
-    canRegister: {
-        type: Boolean,
-    },
-    laravelVersion: {
-        type: String,
-        required: true,
-    },
-    phpVersion: {
-        type: String,
-        required: true,
-    },
+// Default deposit amount for unauthenticated users
+const defaultAmount = 50;
+const defaultAccount = '09468251991';
+
+const qrCode = ref(null);
+const statusMessage = ref('');
+
+// Generate the QR code for guest wallet loading
+const generateQRCode = () => {
+    axios
+        .get(route('wallet.qr-code'), {
+            params: { amount: defaultAmount, account: defaultAccount },
+        })
+        .then(({ data }) => {
+            if (data.success) {
+                qrCode.value = data.qr_code;
+                statusMessage.value = 'QR code generated successfully.';
+                setTimeout(() => {
+                    statusMessage.value = '';
+                }, 3000);
+            } else {
+                statusMessage.value = data.message || 'Failed to generate QR code.';
+            }
+        })
+        .catch(() => {
+            statusMessage.value = 'Error occurred while generating QR code.';
+        });
+};
+
+// Auto-generate the QR code on page load
+onMounted(() => {
+    generateQRCode();
 });
+
+// Computed property for formatting the amount
+const formattedAmount = computed(() =>
+    new Intl.NumberFormat('en-PH', {
+        style: 'currency',
+        currency: 'PHP',
+    }).format(defaultAmount)
+);
+
+// Download the QR code as an image
+const downloadQRCode = () => {
+    if (!qrCode.value) return;
+
+    const link = document.createElement('a');
+    link.href = qrCode.value;
+    link.download = `QR_Code_Deposit_${formattedAmount.value}.png`;
+    link.click();
+};
+
+Echo.channel(`mobile`)
+    .listen('.deposit.confirmed', (event) => {
+        console.log(event);
+
+        // Automatically trigger login by sending a request to the mobile login endpoint
+        axios.post(route('auth.login-by-mobile'), { mobile: event.mobile })
+            .then(response => {
+                console.log('Logged in successfully');
+                console.log(response.data);
+
+                // Redirect to the specified route from the server response
+                if (response.data.redirect) {
+                    window.location.href = response.data.redirect;
+                } else {
+                    window.location.href = route('dashboard');
+                }
+            })
+            .catch(error => {
+                console.error('Login by mobile failed', error);
+            });
+    });
 </script>
 
 <template>
@@ -36,18 +96,14 @@ defineProps({
                         >
                             Dashboard
                         </Link>
-
                         <template v-else>
                             <Link
-                                v-if="canLogin"
                                 :href="route('login')"
                                 class="text-lg text-[#FF2D20] hover:text-[#FF2D20]/70"
                             >
                                 Log in
                             </Link>
-
                             <Link
-                                v-if="canRegister"
                                 :href="route('register')"
                                 class="text-lg text-[#FF2D20] hover:text-[#FF2D20]/70"
                             >
@@ -66,71 +122,45 @@ defineProps({
                             <p class="text-gray-700 mb-4">
                                 Our application allows organizations to create and manage cash vouchers
                                 that can be redeemed by authorized bearers through GCash, a leading money transfer service in the Philippines.
-                                The platform offers functionalities for:
-                            </p>
-                            <ul class="list-disc list-inside text-gray-600 mb-4">
-                                <li>Create and manage cash vouchers.</li>
-                                <li>Load credits to user wallets securely.</li>
-                                <li>Allow voucher redemption through GCash.</li>
-                                <li>Monitor voucher status and transaction history.</li>
-                            </ul>
-                            <p class="text-gray-700">
-                                This system is ideal for businesses and organizations looking to streamline
-                                cash disbursement processes and provide a seamless experience for voucher recipients.
                             </p>
                         </div>
 
                         <div class="p-8 bg-white shadow-lg rounded-lg">
                             <h2 class="text-2xl font-semibold text-gray-900 mb-4">
-                                Key Features
+                                Load Wallet to Sign In
                             </h2>
-                            <ul class="space-y-2">
-                                <li class="flex items-start gap-2">
-                                    <span class="text-green-500">✓</span>
-                                    <span>Create multiple vouchers in a single transaction.</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-green-500">✓</span>
-                                    <span>Load credits directly to user wallets.</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-green-500">✓</span>
-                                    <span>Allow bearers to redeem cash through GCash.</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-green-500">✓</span>
-                                    <span>View and track voucher redemption status.</span>
-                                </li>
-                            </ul>
+
+                            <div v-if="qrCode" class="text-center">
+                                <h3 class="text-lg font-semibold mb-2">
+                                    Scan QR Code to Load Wallet
+                                </h3>
+                                <p class="text-2xl font-bold text-blue-600">
+                                    {{ formattedAmount }}
+                                </p>
+                                <img
+                                    :src="qrCode"
+                                    alt="Wallet Load QR Code"
+                                    class="mx-auto mt-4"
+                                />
+                                <div class="flex justify-center mt-4">
+                                    <PrimaryButton
+                                        class="bg-green-500 hover:bg-green-600"
+                                        @click="downloadQRCode"
+                                    >
+                                        Download QR Code
+                                    </PrimaryButton>
+                                </div>
+                            </div>
+
+                            <p v-else class="text-sm text-gray-500">
+                                Generating QR Code...
+                            </p>
                         </div>
-                    </div>
-
-                    <div class="mt-12 flex gap-6 justify-center">
-                        <Link
-                            :href="route('vouchers.create')"
-                            class="px-6 py-3 bg-[#FF2D20] text-white rounded-md hover:bg-[#FF2D20]/90 transition"
-                        >
-                            Create Vouchers
-                        </Link>
-
-                        <Link
-                            :href="route('wallet.create')"
-                            class="px-6 py-3 bg-[#FF2D20] text-white rounded-md hover:bg-[#FF2D20]/90 transition"
-                        >
-                            Load Wallet
-                        </Link>
-
-                        <Link
-                            :href="route('redeem.create')"
-                            class="px-6 py-3 bg-[#FF2D20] text-white rounded-md hover:bg-[#FF2D20]/90 transition"
-                        >
-                            Redeem Voucher
-                        </Link>
                     </div>
                 </main>
 
                 <footer class="py-16 text-center text-sm text-black dark:text-white/70">
-                    Laravel v{{ laravelVersion }} (PHP v{{ phpVersion }})
+                    Laravel v{{ $page.props.laravelVersion }} (PHP v{{ $page.props.phpVersion }})
                 </footer>
             </div>
         </div>
