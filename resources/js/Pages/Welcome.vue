@@ -1,6 +1,6 @@
 <script setup>
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import { Head } from '@inertiajs/vue3';
+import {Head, usePage} from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
@@ -98,11 +98,11 @@ Echo.channel(`mobile`)
             <div class="relative w-full max-w-2xl px-6 lg:max-w-7xl">
                 <header class="flex justify-between items-center py-10">
                     <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
-                        Cash Voucher Management
+                        {{ usePage().props.app.name }}
                     </h1>
                     <nav class="flex gap-4">
                         <Link
-                            v-if="$page.props.auth.user"
+                            v-if="usePage().props.auth.user"
                             :href="route('dashboard')"
                             class="text-lg text-[#FF2D20] hover:text-[#FF2D20]/70"
                         >
@@ -126,48 +126,33 @@ Echo.channel(`mobile`)
                 </header>
 
                 <main class="mt-12">
-                    <div class="grid gap-8 lg:grid-cols-2">
-                        <div class="p-8 bg-white shadow-lg rounded-lg">
-                            <h2 class="text-2xl font-semibold text-gray-900 mb-4">
-                                What is Cash Voucher Management?
-                            </h2>
-                            <p class="text-gray-700 mb-4">
-                                Our application allows organizations to create and manage cash vouchers
-                                that can be redeemed by authorized bearers through GCash, a leading money transfer service in the Philippines.
+                    <div class="p-8 bg-white shadow-lg rounded-lg">
+                        <h2 class="text-2xl font-semibold text-gray-900 mb-4">
+                            Scan GCash QR Code To Enter
+                        </h2>
+
+                        <div v-if="qrCode" class="text-center">
+                            <p class="text-2xl font-bold text-blue-600 mb-4">
+                                {{ formattedAmount }}
                             </p>
-                        </div>
-
-                        <div class="p-8 bg-white shadow-lg rounded-lg">
-                            <h2 class="text-2xl font-semibold text-gray-900 mb-4">
-                                Load Wallet to Sign In
-                            </h2>
-
-                            <div v-if="qrCode" class="text-center">
-                                <h3 class="text-lg font-semibold mb-2">
-                                    Scan QR Code to Load Wallet
-                                </h3>
-                                <p class="text-2xl font-bold text-blue-600">
-                                    {{ formattedAmount }}
-                                </p>
-                                <img
-                                    :src="qrCode"
-                                    alt="Wallet Load QR Code"
-                                    class="mx-auto mt-4"
-                                />
-                                <div class="flex justify-center mt-4">
-                                    <PrimaryButton
-                                        class="bg-green-500 hover:bg-green-600"
-                                        @click="downloadQRCode"
-                                    >
-                                        Download QR Code
-                                    </PrimaryButton>
-                                </div>
+                            <img
+                                :src="qrCode"
+                                alt="Wallet Load QR Code"
+                                class="mx-auto mt-4 border border-gray-200 shadow-md p-2 bg-white rounded-lg"
+                            />
+                            <div class="flex justify-center mt-4">
+                                <PrimaryButton
+                                    class="bg-green-500 hover:bg-green-600"
+                                    @click="downloadQRCode"
+                                >
+                                    Download QR Code
+                                </PrimaryButton>
                             </div>
-
-                            <p v-else class="text-sm text-gray-500">
-                                Generating QR Code...
-                            </p>
                         </div>
+
+                        <p v-else class="text-sm text-gray-500">
+                            Generating QR Code...
+                        </p>
                     </div>
                 </main>
 
