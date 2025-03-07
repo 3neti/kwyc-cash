@@ -42,4 +42,7 @@ use App\Http\Controllers\Auth\MobileAuthController;
 Route::post('/auth/login-by-mobile', [MobileAuthController::class, 'loginByMobile'])
     ->name('auth.login-by-mobile');
 
+Route::post('/auth/register-by-mobile', [MobileAuthController::class, 'registerByMobile'])
+    ->name('auth.register-by-mobile');
+
 require __DIR__.'/auth.php';

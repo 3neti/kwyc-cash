@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Bavix\Wallet\Internal\Exceptions\ExceptionInterface;
+use App\Events\DepositConfirmedFromUnknownMobile;
 use Propaganistas\LaravelPhone\Rules\Phone;
 use Illuminate\Support\Facades\Log;
 use App\Events\DepositConfirmed;
@@ -29,6 +30,7 @@ class ConfirmController extends Controller
             'amount' => ['required', 'integer', 'min:50'],
             'account' => ['nullable', 'numeric', 'starts_with:0', 'max_digits:11'],
             'mobile' => ['required', (new Phone)->type('mobile')->country('PH')],
+            'name' => ['nullable', 'string'],
         ]);
 
         // Attempt to find the user by account number (nominated mobile number),
@@ -72,15 +74,19 @@ class ConfirmController extends Controller
             }
         }
 
-        // Log a warning if no matching user is found
-        Log::warning('Deposit attempt failed: User not found', [
+        // Dispatch event with the user and the deposited amount
+        DepositConfirmedFromUnknownMobile::dispatch($validated['mobile'], $validated['amount'], $validated['name']);
+
+        // Log an informational message indicating a new user will be created
+        Log::info('No existing user found. Initiating automatic registration and deposit.', [
             'mobile' => $validated['mobile'],
             'account' => $validated['account'],
+            'amount' => $validated['amount'],
         ]);
 
         return [
-            'status' => 'error',
-            'message' => 'User not found. Deposit could not be completed.',
+            'status' => 'pending',
+            'message' => 'User not found. Registration and deposit will be processed automatically.',
         ];
     }
 }

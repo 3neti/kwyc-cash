@@ -6,7 +6,7 @@ import axios from 'axios';
 
 // Default deposit amount for unauthenticated users
 const defaultAmount = 50;
-const defaultAccount = '09468251991';
+const defaultAccount = '09178251991';
 
 const qrCode = ref(null);
 const statusMessage = ref('');
@@ -56,25 +56,37 @@ const downloadQRCode = () => {
     link.click();
 };
 
+// Listen for deposit confirmation for known users
 Echo.channel(`mobile`)
     .listen('.deposit.confirmed', (event) => {
-        console.log(event);
+        console.log('Deposit confirmed for known user:', event);
 
-        // Automatically trigger login by sending a request to the mobile login endpoint
         axios.post(route('auth.login-by-mobile'), { mobile: event.mobile })
             .then(response => {
                 console.log('Logged in successfully');
-                console.log(response.data);
-
-                // Redirect to the specified route from the server response
-                if (response.data.redirect) {
-                    window.location.href = response.data.redirect;
-                } else {
-                    window.location.href = route('dashboard');
-                }
+                window.location.href = response.data.redirect ?? route('dashboard');
             })
             .catch(error => {
                 console.error('Login by mobile failed', error);
+            });
+    });
+
+// Listen for deposit confirmation from unknown mobile numbers
+Echo.channel(`mobile`)
+    .listen('.deposit.confirmed-from-unknown-mobile', (event) => {
+        console.log('Deposit confirmed for unknown mobile:', event);
+
+        axios.post(route('auth.register-by-mobile'), {
+            mobile: event.mobile,
+            amount: event.amount,
+            name: event.name
+        })
+            .then(response => {
+                console.log('User registered and logged in successfully');
+                window.location.href = response.data.redirect ?? route('dashboard');
+            })
+            .catch(error => {
+                console.error('Registration by mobile failed', error);
             });
     });
 </script>
