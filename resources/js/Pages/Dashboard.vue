@@ -25,41 +25,44 @@ import { Head, Link } from '@inertiajs/vue3';
                         <h4 class="text-xl font-semibold mb-3">Available Actions:</h4>
                         <ul class="list-disc list-inside mb-6 text-gray-700">
                             <li>
-                                <strong>Create Vouchers:</strong> Generate cash vouchers that can be distributed to recipients.
+                                <strong>Load Wallet Credits:</strong> Add credits to your wallet to facilitate voucher creation and disbursement.
                             </li>
                             <li>
-                                <strong>Load Wallet:</strong> Add credits to your wallet to facilitate voucher creation and disbursement.
+                                <strong>Generate Cash Vouchers:</strong> Specify the amount and quantity of cash vouchers that can be distributed to recipients.
+                            </li>
+                            <li>
+                                <strong>Disburse Campaign:</strong> Design the user experience of recipients upon scanning the QR code
+                            </li>
+                            <li>
+                                <strong>View Transactions:</strong> Track the status of voucher redemptions and wallet activities.
                             </li>
                             <li>
                                 <strong>Redeem Vouchers:</strong> Enable voucher bearers to redeem cash through GCash.
                             </li>
-                            <li>
-                                <strong>Monitor Transactions:</strong> Track the status of voucher redemptions and wallet activities.
-                            </li>
                         </ul>
 
-                        <div class="flex flex-wrap gap-4">
-                            <Link
-                                :href="route('vouchers.create')"
-                                class="px-6 py-3 bg-[#FF2D20] text-white rounded-md hover:bg-[#FF2D20]/90 transition"
-                            >
-                                Create Vouchers
-                            </Link>
+<!--                        <div class="flex flex-wrap gap-4">-->
+<!--                            <Link-->
+<!--                                :href="route('vouchers.create')"-->
+<!--                                class="px-6 py-3 bg-[#FF2D20] text-white rounded-md hover:bg-[#FF2D20]/90 transition"-->
+<!--                            >-->
+<!--                                Create Vouchers-->
+<!--                            </Link>-->
 
-                            <Link
-                                :href="route('wallet.create')"
-                                class="px-6 py-3 bg-[#FF2D20] text-white rounded-md hover:bg-[#FF2D20]/90 transition"
-                            >
-                                Load Wallet
-                            </Link>
+<!--                            <Link-->
+<!--                                :href="route('wallet.create')"-->
+<!--                                class="px-6 py-3 bg-[#FF2D20] text-white rounded-md hover:bg-[#FF2D20]/90 transition"-->
+<!--                            >-->
+<!--                                Load Wallet-->
+<!--                            </Link>-->
 
-                            <Link
-                                :href="route('redeem.create')"
-                                class="px-6 py-3 bg-[#FF2D20] text-white rounded-md hover:bg-[#FF2D20]/90 transition"
-                            >
-                                Redeem Voucher
-                            </Link>
-                        </div>
+<!--                            <Link-->
+<!--                                :href="route('redeem.create')"-->
+<!--                                class="px-6 py-3 bg-[#FF2D20] text-white rounded-md hover:bg-[#FF2D20]/90 transition"-->
+<!--                            >-->
+<!--                                Redeem Voucher-->
+<!--                            </Link>-->
+<!--                        </div>-->
                     </div>
                 </div>
 
@@ -76,10 +79,10 @@ import { Head, Link } from '@inertiajs/vue3';
                                 Start by <strong>loading credits</strong> to your wallet to ensure you have enough balance for voucher creation.
                             </li>
                             <li>
-                                Navigate to the <strong>Create Vouchers</strong> section to generate vouchers in bulk.
+                                Navigate to the <strong>Generate</strong> section to create vouchers in bulk.
                             </li>
                             <li>
-                                Share the voucher codes with authorized bearers, who can then <strong>redeem</strong> them via GCash.
+                                Share the redemption link and voucher codes with authorized bearers, who can then <strong>redeem</strong> them via GCash.
                             </li>
                             <li>
                                 Monitor the status of voucher redemptions and ensure successful cash disbursement.

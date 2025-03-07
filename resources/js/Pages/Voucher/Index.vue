@@ -63,7 +63,7 @@ const downloadCsv = () => {
     <AuthenticatedLayout>
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                Vouchers
+                View Transactions
             </h2>
         </template>
 
@@ -79,7 +79,7 @@ const downloadCsv = () => {
                     <table class="min-w-full bg-white border">
                         <thead>
                         <tr class="bg-gray-200">
-                            <th class="px-4 py-2 border">Voucher Code & Mobile</th>
+                            <th class="px-4 py-2 border">Voucher Code</th>
                             <th class="px-4 py-2 border">Metadata</th>
                             <th class="px-4 py-2 border">Cash Data</th>
                             <th class="px-4 py-2 border">Status</th>
@@ -95,7 +95,7 @@ const downloadCsv = () => {
                             <td class="px-4 py-2 border text-sm">
                                 <div class="font-semibold">{{ voucher.code }}</div>
                                 <div class="text-gray-500">
-                                    Mobile: {{ voucher.mobile ?? 'N/A' }}
+                                    Redeemer: {{ voucher.metadata.name ?? (voucher.mobile ?? 'N/A') }}
                                 </div>
                             </td>
 
@@ -115,13 +115,13 @@ const downloadCsv = () => {
 
                             <!-- Status Information -->
                             <td class="px-4 py-2 border text-sm">
-                                <div :class="voucher.redeemed ? 'text-green-600' : 'text-gray-500'">
+                                <div :class="voucher.redeemed ? 'text-red-600' : 'text-gray-500'">
                                     Redeemed: {{ voucher.redeemed ? 'Yes' : 'No' }}
                                 </div>
-                                <div :class="voucher.expired ? 'text-red-600' : 'text-gray-500'">
-                                    Expired: {{ voucher.expired ? 'Yes' : 'No' }}
-                                </div>
-                                <div :class="voucher.disbursed ? 'text-blue-600' : 'text-gray-500'">
+<!--                                <div :class="voucher.expired ? 'text-orange-600' : 'text-gray-500'">-->
+<!--                                    Expired: {{ voucher.expired ? 'Yes' : 'No' }}-->
+<!--                                </div>-->
+                                <div :class="voucher.disbursed ? 'text-green-600' : 'text-gray-500'">
                                     Disbursed: {{ voucher.disbursed ? 'Yes' : 'No' }}
                                 </div>
                                 <div class="text-gray-500 text-xs mt-1">

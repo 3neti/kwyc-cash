@@ -40,28 +40,28 @@ const showingNavigationDropdown = ref(false);
                                     Dashboard
                                 </NavLink>
                                 <NavLink
+                                    :href="route('wallet.create')"
+                                    :active="route().current('wallet.create')"
+                                >
+                                    Load
+                                </NavLink>
+                                <NavLink
                                     :href="route('vouchers.create')"
                                     :active="route().current('vouchers.create')"
                                 >
                                     Generate
                                 </NavLink>
                                 <NavLink
-                                    :href="route('wallet.create')"
-                                    :active="route().current('wallet.create')"
+                                    :href="route('campaign.create')"
+                                    :active="route().current('campaign.create')"
                                 >
-                                    Wallet
+                                    Disburse
                                 </NavLink>
                                 <NavLink
                                     :href="route('vouchers.index')"
                                     :active="route().current('vouchers.index')"
                                 >
-                                    List
-                                </NavLink>
-                                <NavLink
-                                    :href="route('campaign.create')"
-                                    :active="route().current('campaign.create')"
-                                >
-                                    Campaign
+                                    View
                                 </NavLink>
                             </div>
                         </div>

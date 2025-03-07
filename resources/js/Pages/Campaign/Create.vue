@@ -180,7 +180,7 @@ watch(() => form.value.inputs, (newVal) => {
     <AuthenticatedLayout>
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                Create Campaign
+                Disburse Campaign
             </h2>
         </template>
 
