@@ -57,6 +57,27 @@ const downloadCsv = () => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     saveAs(blob, 'vouchers.csv');
 };
+
+// Filter dropdown states
+const redeemedFilter = ref('');
+const disbursedFilter = ref('');
+
+// Computed property to filter vouchers
+const filteredVouchers = computed(() => {
+    return props.vouchers.filter((voucher) => {
+        const redeemedMatch =
+            !redeemedFilter.value ||
+            (redeemedFilter.value === 'yes' && voucher.redeemed) ||
+            (redeemedFilter.value === 'no' && !voucher.redeemed);
+
+        const disbursedMatch =
+            !disbursedFilter.value ||
+            (disbursedFilter.value === 'yes' && voucher.disbursed) ||
+            (disbursedFilter.value === 'no' && !voucher.disbursed);
+
+        return redeemedMatch && disbursedMatch;
+    });
+});
 </script>
 
 <template>
@@ -76,6 +97,36 @@ const downloadCsv = () => {
                         <PrimaryButton @click="downloadCsv">Download CSV</PrimaryButton>
                     </div>
 
+                    <div class="flex space-x-4 mb-4">
+                        <!-- Redeemed Status Filter -->
+                        <div>
+                            <label for="redeemedFilter" class="block text-sm font-medium text-gray-700">Redeemed</label>
+                            <select
+                                id="redeemedFilter"
+                                v-model="redeemedFilter"
+                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                            >
+                                <option value="">All</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+
+                        <!-- Disbursed Status Filter -->
+                        <div>
+                            <label for="disbursedFilter" class="block text-sm font-medium text-gray-700">Disbursed</label>
+                            <select
+                                id="disbursedFilter"
+                                v-model="disbursedFilter"
+                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                            >
+                                <option value="">All</option>
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <table class="min-w-full bg-white border">
                         <thead>
                         <tr class="bg-gray-200">
@@ -86,11 +137,7 @@ const downloadCsv = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        <tr
-                            v-for="voucher in props.vouchers"
-                            :key="voucher.code"
-                            class="border-t"
-                        >
+                        <tr v-for="voucher in filteredVouchers" :key="voucher.code" class="border-t">
                             <!-- Voucher Code & Mobile -->
                             <td class="px-4 py-2 border text-sm">
                                 <div class="font-semibold">{{ voucher.code }}</div>
