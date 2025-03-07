@@ -26,18 +26,36 @@ const form = useForm({
     account: usePage().props.auth.user.mobile ?? '',
 });
 
+// Form and state setup
+const user = usePage().props.auth.user;
 const statusMessage = ref('');
 const qrCode = ref(null);
 const showGenerateButton = ref(true);
 
-// Get and format the wallet balance
-const userBalance = computed(() => usePage().props.auth.user.balanceFloat);
+// Make the wallet balance reactive
+const userBalance = ref(user.balanceFloat);
+
+// Format the wallet balance
 const formattedBalance = computed(() =>
     new Intl.NumberFormat('en-PH', {
         style: 'currency',
         currency: 'PHP',
     }).format(userBalance.value)
 );
+
+// Subscribe to the user-specific channel for balance updates
+Echo.private(`user.${user.id}`)
+    .listen('.deposit.confirmed', (event) => {
+        statusMessage.value = `✅ Deposit of ₱${event.amount} confirmed!`;
+        setTimeout(() => {
+            statusMessage.value = '';
+        }, 5000);
+    })
+    .listen('.balance.updated', (event) => {
+        if (event.balanceFloat !== undefined) {
+            userBalance.value = event.balanceFloat;
+        }
+    });
 
 // Computed property for the dynamic QR code label
 const qrCodeLabel = computed(() => `Scan QR Code to deposit`);
