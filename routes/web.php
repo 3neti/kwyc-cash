@@ -14,7 +14,7 @@ Route::get('/', function () {
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
     ]);
-});
+})->name('home');
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
@@ -44,5 +44,9 @@ Route::post('/auth/login-by-mobile', [MobileAuthController::class, 'loginByMobil
 
 Route::post('/auth/register-by-mobile', [MobileAuthController::class, 'registerByMobile'])
     ->name('auth.register-by-mobile');
+
+use App\Http\Controllers\RiderController;
+
+Route::get('rider', RiderController::class)->name('rider');
 
 require __DIR__.'/auth.php';

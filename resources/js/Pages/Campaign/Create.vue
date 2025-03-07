@@ -26,7 +26,8 @@ const form = ref({
     mobile: '',
     country: 'PH',
     referenceLabel: '',
-    inputs: props.inputs
+    inputs: props.inputs,
+    rider: ''
 });
 
 // Show optional fields toggle
@@ -53,6 +54,11 @@ const generateLink = () => {
         } catch (e) {
             console.error('Invalid inputs JSON format', e);
         }
+    }
+
+    // Append the rider parameter if valid
+    if (form.value.rider && isRiderUrlValid.value) {
+        params.append('rider', form.value.rider);
     }
 
     generatedLink.value = `${baseUrl}?${params.toString()}`;
@@ -101,6 +107,16 @@ const parsedInputs = ref({});
 const isChecked = (input) => {
     return parsedInputs.value && parsedInputs.value.hasOwnProperty(input);
 };
+
+// Computed property to validate the rider URL
+const isRiderUrlValid = computed(() => {
+    try {
+        new URL(form.value.rider);
+        return true;
+    } catch (e) {
+        return false;
+    }
+});
 
 // Add or remove input field based on checkbox selection
 
@@ -230,6 +246,23 @@ watch(() => form.value.inputs, (newVal) => {
                             <InputError class="mt-2" :message="!isJsonValid ? 'Invalid JSON format' : ''" />
                         </div>
 
+                        <div>
+                            <InputLabel for="rider" value="Rider URL" />
+                            <TextInput
+                                id="rider"
+                                type="text"
+                                class="mt-1 block w-full"
+                                v-model="form.rider"
+                                placeholder="Enter a valid URL for the rider"
+                                :class="{ 'border-red-500': form.rider && !isRiderUrlValid }"
+                            />
+                            <InputError
+                                v-if="form.rider && !isRiderUrlValid"
+                                class="mt-2"
+                                message="Invalid URL format. Please enter a valid URL."
+                            />
+                        </div>
+
                         <!-- Optional Fields Toggle -->
                         <div class="flex items-center space-x-2 mt-4">
                             <input
@@ -297,3 +330,10 @@ watch(() => form.value.inputs, (newVal) => {
         </div>
     </AuthenticatedLayout>
 </template>
+
+<style scoped>
+input.border-red-500 {
+    border-color: #f56565;
+    box-shadow: 0 0 0 1px rgba(245, 101, 101, 0.5);
+}
+</style>

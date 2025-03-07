@@ -32,7 +32,8 @@ const form = useForm({
     voucher_code: params.get('voucher_code') ?? '',
     mobile: params.get('mobile') ?? '',
     country: params.get('country') ?? 'PH',
-    inputs: parsedInputs
+    inputs: parsedInputs,
+    rider: params.get('rider') ?? '',
 });
 
 // Dynamic labels with URL param precedence
@@ -68,6 +69,9 @@ const startPolling = (voucherCode) => {
                 if (response.data.status === 'completed') {
                     setStatusMessage('✅ Cash disbursed successfully!');
                     stopPolling(true);
+                    setTimeout(() => {
+                        form.get(route('rider'));
+                    }, 1500); // Redirect after 3 seconds
                 } else if (response.data.status === 'pending') {
                     setStatusMessage('🟢 Voucher redeemed. Waiting for disbursement...');
                 } else {
