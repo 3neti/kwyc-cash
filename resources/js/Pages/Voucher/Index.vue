@@ -1,7 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import { computed, ref } from 'vue';
+import {computed, nextTick, onMounted, ref, watch} from 'vue';
 import { saveAs } from 'file-saver';
 
 // Define props to receive the vouchers data
@@ -61,22 +61,74 @@ const downloadCsv = () => {
 // Filter dropdown states
 const redeemedFilter = ref('');
 const disbursedFilter = ref('');
+const fieldFilter = ref('');
+const fieldFilterValue = ref('');
 
-// Computed property to filter vouchers
+// const applyFilters = () => {
+//     console.log('Applying filters', {
+//         redeemedFilter: redeemedFilter.value,
+//         disbursedFilter: disbursedFilter.value,
+//     });
+//     filteredVouchers.value = props.vouchers.filter((voucher) => {
+//         const matchesRedeemed = redeemedFilter.value === null || voucher.redeemed === redeemedFilter.value;
+//         const matchesDisbursed = disbursedFilter.value === null || voucher.disbursed === disbursedFilter.value;
+//         return matchesRedeemed && matchesDisbursed;
+//     });
+// };
+
+// watch([redeemedFilter, disbursedFilter], () => {
+//     applyFilters();
+// });
+
+// onMounted(() => {
+//     redeemedFilter.value = true;
+//     disbursedFilter.value = true;
+//     applyFilters();
+// });
 const filteredVouchers = computed(() => {
     return props.vouchers.filter((voucher) => {
-        const redeemedMatch =
-            !redeemedFilter.value ||
-            (redeemedFilter.value === 'yes' && voucher.redeemed) ||
-            (redeemedFilter.value === 'no' && !voucher.redeemed);
+        // Redeemed filter
+        const matchesRedeemed =
+            !redeemedFilter.value || String(voucher.redeemed) === redeemedFilter.value;
 
-        const disbursedMatch =
-            !disbursedFilter.value ||
-            (disbursedFilter.value === 'yes' && voucher.disbursed) ||
-            (disbursedFilter.value === 'no' && !voucher.disbursed);
+        // Disbursed filter
+        const matchesDisbursed =
+            !disbursedFilter.value || String(voucher.disbursed) === disbursedFilter.value;
 
-        return redeemedMatch && disbursedMatch;
+        // Field-based filtering
+        const matchesFieldFilter = (() => {
+            const value = fieldFilterValue.value.toLowerCase();
+
+            if (!fieldFilter.value || !value) return true;
+
+            switch (fieldFilter.value) {
+                case 'voucher_code':
+                    return (
+                        value.length >= 4 &&
+                        voucher.code.toLowerCase().includes(value)
+                    );
+                case 'mobile':
+                    return (
+                        value.length >= 11 &&
+                        (voucher.mobile ?? '').toLowerCase().includes(value)
+                    );
+                case 'name':
+                    return (
+                        value.length >= 1 &&
+                        (voucher.metadata.name ?? '').toLowerCase().includes(value)
+                    );
+                default:
+                    return true;
+            }
+        })();
+
+        return matchesRedeemed && matchesDisbursed && matchesFieldFilter;
     });
+});
+
+// Watcher to clear the filter value when the filter field changes
+watch(fieldFilter, () => {
+    fieldFilterValue.value = '';
 });
 </script>
 
@@ -97,33 +149,89 @@ const filteredVouchers = computed(() => {
                         <PrimaryButton @click="downloadCsv">Download CSV</PrimaryButton>
                     </div>
 
-                    <div class="flex space-x-4 mb-4">
-                        <!-- Redeemed Status Filter -->
+<!--                    <div class="flex space-x-4 mb-4">-->
+<!--                        &lt;!&ndash; Redeemed Status Filter &ndash;&gt;-->
+<!--                        <div>-->
+<!--                            <label for="redeemedFilter" class="block text-sm font-medium text-gray-700">Redeemed</label>-->
+<!--                            <select-->
+<!--                                id="redeemedFilter"-->
+<!--                                v-model="redeemedFilter"-->
+<!--                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"-->
+<!--                            >-->
+<!--                                <option value="">All</option>-->
+<!--                                <option value="yes">Yes</option>-->
+<!--                                <option value="no">No</option>-->
+<!--                            </select>-->
+<!--                        </div>-->
+
+<!--                        &lt;!&ndash; Disbursed Status Filter &ndash;&gt;-->
+<!--                        <div>-->
+<!--                            <label for="disbursedFilter" class="block text-sm font-medium text-gray-700">Disbursed</label>-->
+<!--                            <select-->
+<!--                                id="disbursedFilter"-->
+<!--                                v-model="disbursedFilter"-->
+<!--                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"-->
+<!--                            >-->
+<!--                                <option value="">All</option>-->
+<!--                                <option value="yes">Yes</option>-->
+<!--                                <option value="no">No</option>-->
+<!--                            </select>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+                    <div class="flex gap-4 mb-4 items-center">
+                        <!-- Existing Filter Dropdowns -->
                         <div>
                             <label for="redeemedFilter" class="block text-sm font-medium text-gray-700">Redeemed</label>
                             <select
                                 id="redeemedFilter"
                                 v-model="redeemedFilter"
-                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                             >
                                 <option value="">All</option>
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
                             </select>
                         </div>
 
-                        <!-- Disbursed Status Filter -->
                         <div>
                             <label for="disbursedFilter" class="block text-sm font-medium text-gray-700">Disbursed</label>
                             <select
                                 id="disbursedFilter"
                                 v-model="disbursedFilter"
-                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                             >
                                 <option value="">All</option>
-                                <option value="yes">Yes</option>
-                                <option value="no">No</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
                             </select>
+                        </div>
+
+                        <!-- New Field Filter Dropdown -->
+                        <div>
+                            <label for="fieldFilter" class="block text-sm font-medium text-gray-700">Filter By</label>
+                            <select
+                                id="fieldFilter"
+                                v-model="fieldFilter"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            >
+                                <option value="">Select Field</option>
+                                <option value="voucher_code">Voucher Code</option>
+                                <option value="mobile">Mobile</option>
+                                <option value="name">Name</option>
+                            </select>
+                        </div>
+
+                        <!-- Filter Value Input -->
+                        <div class="flex-1">
+                            <label for="fieldFilterValue" class="block text-sm font-medium text-gray-700">Filter Value</label>
+                            <input
+                                id="fieldFilterValue"
+                                type="text"
+                                v-model="fieldFilterValue"
+                                class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                placeholder="Enter filter value"
+                            />
                         </div>
                     </div>
 
