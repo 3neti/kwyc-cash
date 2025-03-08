@@ -5,7 +5,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import InputError from '@/Components/InputError.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref, computed, watch } from 'vue';
+import {ref, computed, watch, onMounted} from 'vue';
 import { debounce } from 'lodash';
 
 // Define props with default values
@@ -154,6 +154,50 @@ const toTitleCase = (str) => {
         .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize each word
 };
 
+// Function to get the current GPS coordinates
+const getLocation = () => {
+    if (!navigator.geolocation) {
+        console.warn('Geolocation is not supported by this browser.');
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const { latitude, longitude } = position.coords;
+            const coordinates = `${latitude},${longitude}`;
+            let locationName = 'Unknown Location';
+
+            try {
+                // Reverse geocode using the OpenCage Geocoding API (or any preferred API)
+                const response = await axios.get('https://api.opencagedata.com/geocode/v1/json', {
+                    params: {
+                        q: coordinates,
+                        key: 'd25e833a933c446d8964746b531d53f4', // Replace with your actual API key
+                    },
+                });
+
+                if (response.data.results.length > 0) {
+                    locationName = response.data.results[0].formatted;
+                }
+            } catch (error) {
+                console.error('Error getting location name:', error);
+            }
+
+            // Concatenate the name with the coordinates and update the form
+            form.inputs.location = `${locationName} (${coordinates})`;
+        },
+        (error) => {
+            console.error('Error getting location:', error.message);
+        }
+    );
+};
+
+onMounted(() => {
+    if ('location' in form.inputs) {
+        getLocation();
+    }
+});
+
 </script>
 
 <template>
@@ -197,13 +241,27 @@ const toTitleCase = (str) => {
 
             <!-- Dynamic Fields -->
             <div v-for="(value, key) in form.inputs" :key="key">
-                <template v-if="key !== 'reference'">
+                <template v-if="key === 'location'">
                     <InputLabel :for="key" :value="toTitleCase(key)" />
                     <TextInput
                         :id="key"
                         type="text"
                         class="mt-1 block w-full"
                         v-model="form.inputs[key]"
+                        placeholder="Fetching your location..."
+                        readonly
+                    />
+                    <InputError class="mt-2" />
+                </template>
+
+                <template v-else-if="key !== 'reference'">
+                    <InputLabel :for="key" :value="toTitleCase(key)" />
+                    <TextInput
+                        :id="key"
+                        type="text"
+                        class="mt-1 block w-full"
+                        v-model="form.inputs[key]"
+                        required
                         :placeholder="`Enter ${toTitleCase(key)}`"
                     />
                     <InputError class="mt-2" />
