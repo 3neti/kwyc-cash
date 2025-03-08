@@ -17,6 +17,10 @@ const props = defineProps({
     availableInputs: {
         type: String,
         default: '',
+    },
+    rider: {
+        type: String,
+        default: '',
     }
 });
 
@@ -27,7 +31,8 @@ const form = ref({
     country: 'PH',
     referenceLabel: '',
     inputs: props.inputs,
-    rider: ''
+    rider: props.rider,
+    feedback: '',
 });
 
 // Show optional fields toggle
@@ -44,6 +49,9 @@ const generateLink = () => {
     if (form.value.mobile) params.append('mobile', form.value.mobile);
     if (form.value.country) params.append('country', form.value.country);
     if (form.value.referenceLabel) params.append('referenceLabel', form.value.referenceLabel);
+    if (form.value.feedback && isFeedbackValid.value) {
+        params.append('feedback', form.value.feedback);
+    }
 
     // Properly append the inputs as a JSON string if it's a valid object-like string
     if (form.value.inputs) {
@@ -52,7 +60,7 @@ const generateLink = () => {
             const inputsObject = JSON.parse(form.value.inputs.replace(/'/g, '"'));
             params.append('inputs', JSON.stringify(inputsObject));
         } catch (e) {
-            console.error('Invalid inputs JSON format', e);
+            console.error('Invalid inputs JSON format', e);//remove this
         }
     }
 
@@ -174,6 +182,24 @@ watch(() => form.value.inputs, (newVal) => {
     }
 });
 
+const isFeedbackValid = computed(() => {
+    if (!form.value.feedback) return true; // Empty field is valid
+
+    const feedbackItems = form.value.feedback.split(',').map(item => item.trim());
+
+    // Regex patterns for validation
+    const mobilePattern = /^09\d{9}$/; // 11-digit Philippine mobile number
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Simple email validation
+    const urlPattern = /^https?:\/\/[^\s/$.?#].[^\s]*$/i; // Simple URL validation
+
+    // Validate each feedback item
+    return feedbackItems.every(item =>
+        mobilePattern.test(item) ||
+        emailPattern.test(item) ||
+        urlPattern.test(item)
+    );
+});
+
 </script>
 
 <template>
@@ -260,6 +286,23 @@ watch(() => form.value.inputs, (newVal) => {
                                 v-if="form.rider && !isRiderUrlValid"
                                 class="mt-2"
                                 message="Invalid URL format. Please enter a valid URL."
+                            />
+                        </div>
+
+                        <div>
+                            <InputLabel for="feedback" value="Feedback" />
+                            <TextInput
+                                id="feedback"
+                                type="text"
+                                class="mt-1 block w-full"
+                                v-model="form.feedback"
+                                placeholder="Enter feedback as comma-separated values (mobile, email, url)"
+                                :class="{ 'border-red-500': form.feedback && !isFeedbackValid }"
+                            />
+                            <InputError
+                                v-if="form.feedback && !isFeedbackValid"
+                                class="mt-2"
+                                message="Invalid feedback format. Please enter valid mobile numbers, emails, or URLs."
                             />
                         </div>
 

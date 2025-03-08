@@ -33,7 +33,6 @@ class DisburseAmount
             Log::warning('No associated Cash entity found for the voucher', ['voucher_code' => $voucher->code]);
             return false;
         }
-//        $mobile = Arr::get($voucher->redeemer->metadata, 'mobile');
         $mobile = $voucher->redeemers->first()?->redeemer->mobile ?? null;
         $amount = $cash->value->getAmount()->toFloat();
         $tag = $cash->tag;

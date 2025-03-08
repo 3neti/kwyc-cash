@@ -26,7 +26,10 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
-            'mobile' => ['required', (new Phone)->type('mobile')->country('PH'), 'unique:'.User::class],
+            'mobile' => [
+                'required',
+                (new Phone)->type('mobile')->country('PH'),
+                Rule::unique(User::class)->ignore($this->user()->id)],
         ];
     }
 }

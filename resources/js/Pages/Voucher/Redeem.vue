@@ -34,6 +34,7 @@ const form = useForm({
     country: params.get('country') ?? 'PH',
     inputs: parsedInputs,
     rider: params.get('rider') ?? '',
+    feedback: params.get('feedback')
 });
 
 // Dynamic labels with URL param precedence

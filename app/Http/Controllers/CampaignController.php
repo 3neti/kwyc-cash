@@ -21,7 +21,8 @@ class CampaignController extends Controller
     {
         return inertia('Campaign/Create', [
             'inputs' => config('kwyc-cash.campaign.inputs'),
-            'availableInputs' => config('kwyc-cash.campaign.available-inputs')
+            'availableInputs' => config('kwyc-cash.campaign.available-inputs'),
+            'rider' => config('kwyc-cash.campaign.rider')
         ]);
     }
 
