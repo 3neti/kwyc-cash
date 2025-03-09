@@ -36,7 +36,7 @@ return [
     ],
     'campaign' => [
         'inputs' => env('CAMPAIGN_INPUTS', '{"name": null}'),
-        'available-inputs' => env('CAMPAIGN_AVAILABLE_INPUTS', 'name, first_name, last_name, reference, location, code'),
+        'available-inputs' => env('CAMPAIGN_AVAILABLE_INPUTS', 'name, first_name, last_name, reference, location, code, signature'),
         'rider' => env('CAMPAIGN_RIDER', 'https://run.mocky.io/v3/45aab9ca-55d8-4964-bf53-d7b6f29a12c0')
     ]
 ];
