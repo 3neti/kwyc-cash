@@ -48,59 +48,61 @@ const handleDisabled = () => {
 // Submit the form with the signature data
 const submit = () => {
     form.post(route('signature.store'), {
-        onFinish: () => {
-
-        }
+        onFinish: () => {}
     });
 };
 </script>
 
 <template>
-    <div class="flex flex-col items-center w-full min-h-screen p-4 bg-gray-50">
-        <div class="w-full max-w-[90vw] bg-gray-100 p-4 rounded-md shadow-lg">
-            <VueSignaturePad
-                ref="signaturePad"
-                class="w-full h-[50vh] max-h-[400px]"
-                :maxWidth="2"
-                :minWidth="2"
-                :disabled="state.disabled"
-                :options="{
-                    penColor: state.options.penColor,
-                    backgroundColor: state.options.backgroundColor
-                }"
-            />
-        </div>
+    <div
+        class="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0"
+    >
+        <div class="w-full max-w-[600px] bg-white p-4 rounded-lg shadow-md flex flex-col items-center space-y-4">
+            <div class="w-full aspect-square bg-gray-50 border border-gray-300 rounded-md overflow-hidden">
+                <VueSignaturePad
+                    ref="signaturePad"
+                    class="w-full h-full"
+                    :maxWidth="2"
+                    :minWidth="2"
+                    :disabled="state.disabled"
+                    :options="{
+                        penColor: state.options.penColor,
+                        backgroundColor: state.options.backgroundColor
+                    }"
+                />
+            </div>
 
-        <!-- Action Buttons -->
-        <div class="flex flex-wrap justify-center gap-2 mt-4">
-            <button
-                type="button"
-                @click="handleSave"
-                class="px-4 py-2 bg-green-500 text-white rounded-md w-full sm:w-auto"
-            >
-                Save & Submit
-            </button>
-            <button
-                type="button"
-                @click="handleClear"
-                class="px-4 py-2 bg-red-500 text-white rounded-md w-full sm:w-auto"
-            >
-                Clear
-            </button>
-            <button
-                type="button"
-                @click="handleUndo"
-                class="px-4 py-2 bg-blue-500 text-white rounded-md w-full sm:w-auto"
-            >
-                Undo
-            </button>
-            <button
-                type="button"
-                @click="handleDisabled"
-                class="px-4 py-2 bg-gray-500 text-white rounded-md w-full sm:w-auto"
-            >
-                Toggle Disabled
-            </button>
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap justify-center gap-2">
+                <button
+                    type="button"
+                    @click="handleSave"
+                    class="px-4 py-2 bg-green-500 text-white rounded-md w-full sm:w-auto"
+                >
+                    Save & Submit
+                </button>
+                <button
+                    type="button"
+                    @click="handleClear"
+                    class="px-4 py-2 bg-red-500 text-white rounded-md w-full sm:w-auto"
+                >
+                    Clear
+                </button>
+                <button
+                    type="button"
+                    @click="handleUndo"
+                    class="px-4 py-2 bg-blue-500 text-white rounded-md w-full sm:w-auto"
+                >
+                    Undo
+                </button>
+                <button
+                    type="button"
+                    @click="handleDisabled"
+                    class="px-4 py-2 bg-gray-500 text-white rounded-md w-full sm:w-auto"
+                >
+                    Toggle Disabled
+                </button>
+            </div>
         </div>
     </div>
 </template>
