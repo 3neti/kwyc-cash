@@ -26,7 +26,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::resource('redeem', RedeemCashVoucherController::class)->parameter('redeem', 'voucher')->only(['create', 'store', 'show']);
+Route::resource('old-redeem', RedeemCashVoucherController::class)->parameter('old-redeem', 'voucher')->only(['create', 'store', 'show']);
 
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\WalletController;
@@ -48,5 +48,27 @@ Route::post('/auth/register-by-mobile', [MobileAuthController::class, 'registerB
 use App\Http\Controllers\RiderController;
 
 Route::get('rider', RiderController::class)->name('rider');
+
+use App\Http\Controllers\Voucher\RedeemController;
+use App\Http\Middleware\CheckVoucherMiddleware;
+use App\Http\Middleware\CheckMobileMiddleware;
+use App\Http\Middleware\RedeemVoucherMiddleware;
+use App\Http\Middleware\SignTransactionMiddleware;
+
+Route::resource('redeem', RedeemController::class)
+    ->parameter('redeem', 'voucher')
+    ->middleware([
+        CheckVoucherMiddleware::class,
+        CheckMobileMiddleware::class,
+        SignTransactionMiddleware::class,
+        RedeemVoucherMiddleware::class,
+    ])
+    ->only(['create', 'store', 'show'])
+;
+
+use App\Http\Controllers\SignatureController;
+
+Route::resource('signature', SignatureController::class)
+    ->only(['create', 'store']);
 
 require __DIR__.'/auth.php';

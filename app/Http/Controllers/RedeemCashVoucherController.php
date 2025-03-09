@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cash;
+use Illuminate\Support\Facades\{Log, Session};
 use Illuminate\Support\Facades\Validator;
 use FrittenKeeZ\Vouchers\Models\Voucher;
-use Illuminate\Support\Facades\Log;
 use App\Actions\RedeemCashVoucher;
 use Illuminate\Http\Request;
 use App\Data\VoucherData;
+use App\Models\Cash;
 
 class RedeemCashVoucherController extends Controller
 {
@@ -25,12 +25,15 @@ class RedeemCashVoucherController extends Controller
      */
     public function create()
     {
+        Session::forget(['voucher_code', 'redeemer_data', 'signature_data']);
+
         return inertia()->render('Voucher/Redeem', [
             'referenceLabel' => config('kwyc-cash.redeem.reference.label'),
         ]);
     }
 
     /**
+     * @deprecated
      * Store a newly created resource in storage.
      */
     public function store(Request $request)

@@ -33,6 +33,9 @@ return [
             'label' => env('REDEEM_REFERENCE_LABEL', 'Reference'),
             'value' => env('REDEEM_REFERENCE_VALUE', '')
         ],
+        'success' => [
+            'redirect_timeout' => env('RIDER_REDIRECT_TIMEOUT', 5000)
+        ],
     ],
     'campaign' => [
         'inputs' => env('CAMPAIGN_INPUTS', '{"name": null}'),

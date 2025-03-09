@@ -30,6 +30,7 @@ const downloadCsv = () => {
         'Mobile',
         'Metadata',
         'Cash Data',
+        'Signature',
         'Redeemed',
         'Expired',
         'Disbursed',
@@ -37,19 +38,20 @@ const downloadCsv = () => {
     ];
 
     const csvContent = [
-        csvHeaders.join(','), // Add headers as the first row
+        csvHeaders.join(','),
         ...props.vouchers.map((voucher) => {
             return [
                 voucher.code,
                 voucher.mobile ?? 'N/A',
-                formatJson(voucher.metadata).replace(/"/g, '""'),
+                formatJson({ ...voucher.metadata, signature: undefined }).replace(/"/g, '""'),
                 formatJson(voucher.cash).replace(/"/g, '""'),
+                voucher.metadata.signature ? 'Has Signature' : 'No Signature',
                 voucher.redeemed ? 'Yes' : 'No',
                 voucher.expired ? 'Yes' : 'No',
                 voucher.disbursed ? 'Yes' : 'No',
                 voucher.created_at,
             ]
-                .map((field) => `"${field}"`) // Wrap fields in quotes for CSV compatibility
+                .map((field) => `"${field}"`)
                 .join(',');
         }),
     ].join('\n');
@@ -242,6 +244,7 @@ watch(fieldFilter, () => {
                             <th class="px-4 py-2 border">Metadata</th>
                             <th class="px-4 py-2 border">Cash Data</th>
                             <th class="px-4 py-2 border">Status</th>
+                            <th class="px-4 py-2 border">Signature</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -257,7 +260,7 @@ watch(fieldFilter, () => {
                             <!-- Metadata as Pretty JSON -->
                             <td class="px-4 py-2 border text-xs whitespace-pre-wrap">
                                     <pre class="bg-gray-50 p-2 rounded overflow-auto">
-                                        {{ formatJson(voucher.metadata) }}
+                                {{ formatJson({ ...voucher.metadata, signature: undefined }) }}
                                     </pre>
                             </td>
 
@@ -283,6 +286,14 @@ watch(fieldFilter, () => {
                                     Created: {{ voucher.created_at }}
                                 </div>
                             </td>
+
+                            <!-- Display Signature Separately if Available -->
+                            <td class="px-4 py-2 border text-center">
+                                <div v-if="voucher.metadata.signature" class="signature-box">
+                                    <img :src="voucher.metadata.signature" alt="Signature" class="max-h-20 mx-auto border rounded" />
+                                </div>
+                                <div v-else class="text-gray-500">No Signature</div>
+                            </td>
                         </tr>
                         </tbody>
                     </table>
@@ -302,5 +313,11 @@ pre {
     overflow-y: auto;
     white-space: pre-wrap;
     word-wrap: break-word;
+}
+.signature-box img {
+    max-height: 80px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 2px;
 }
 </style>

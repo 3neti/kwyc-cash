@@ -42,7 +42,7 @@ const qrCodeDataUrl = ref('');
 
 // Generate the link based on form inputs
 const generateLink = () => {
-    const baseUrl = `${window.location.origin}${route('redeem.create', {}, false)}`;
+    const baseUrl = `${window.location.origin}${route('old-redeem.create', {}, false)}`;
     const params = new URLSearchParams();
 
     if (form.value.voucher_code) params.append('voucher_code', form.value.voucher_code);

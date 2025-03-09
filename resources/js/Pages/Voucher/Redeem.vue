@@ -65,14 +65,14 @@ const startPolling = (voucherCode) => {
 
     // Set a polling interval every 3 seconds
     pollInterval = setInterval(() => {
-        axios.get(route('redeem.show', { voucher: voucherCode }))
+        axios.get(route('old-redeem.show', { voucher: voucherCode }))
             .then((response) => {
                 if (response.data.status === 'completed') {
                     setStatusMessage('✅ Cash disbursed successfully!');
                     stopPolling(true);
-                    setTimeout(() => {
-                        form.get(route('rider'));
-                    }, 1500); // Redirect after 3 seconds
+                    // setTimeout(() => {
+                    //     form.get(route('rider'));
+                    // }, 1500); // Redirect after 3 seconds
                 } else if (response.data.status === 'pending') {
                     setStatusMessage('🟢 Voucher redeemed. Waiting for disbursement...');
                 } else {
@@ -107,7 +107,7 @@ const stopPolling = (resetForm = false) => {
 
 // Submit the form
 const submit = () => {
-    form.post(route('redeem.store'), {
+    form.get(route('redeem.show', {voucher: form.voucher_code}), {
         onFinish: () => {
             setStatusMessage('⏳ Processing... Please wait.');
             startPolling(form.voucher_code);
@@ -197,6 +197,11 @@ onMounted(() => {
     if ('location' in form.inputs) {
         getLocation();
     }
+
+    // Initialize 'signature' as an empty string only if the search param exists
+    if (params.has('signature') && !('signature' in form.inputs)) {
+        form.inputs.signature = '';
+    }
 });
 
 </script>
@@ -255,7 +260,8 @@ onMounted(() => {
                     <InputError class="mt-2" />
                 </template>
 
-                <template v-else-if="key !== 'reference'">
+                <!-- Render only non-signature and non-reference fields -->
+                <template v-else-if="key !== 'reference' && key !== 'signature'">
                     <InputLabel :for="key" :value="toTitleCase(key)" />
                     <TextInput
                         :id="key"
@@ -267,6 +273,19 @@ onMounted(() => {
                     />
                     <InputError class="mt-2" />
                 </template>
+
+<!--                <template v-else-if="key !== 'reference'">-->
+<!--                    <InputLabel :for="key" :value="toTitleCase(key)" />-->
+<!--                    <TextInput-->
+<!--                        :id="key"-->
+<!--                        type="text"-->
+<!--                        class="mt-1 block w-full"-->
+<!--                        v-model="form.inputs[key]"-->
+<!--                        required-->
+<!--                        :placeholder="`Enter ${toTitleCase(key)}`"-->
+<!--                    />-->
+<!--                    <InputError class="mt-2" />-->
+<!--                </template>-->
             </div>
 
             <div class="mt-4 flex items-center justify-between gap-2">
