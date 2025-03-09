@@ -272,39 +272,7 @@ const isFeedbackValid = computed(() => {
                             <InputError class="mt-2" :message="!isJsonValid ? 'Invalid JSON format' : ''" />
                         </div>
 
-                        <div>
-                            <InputLabel for="rider" value="Rider URL" />
-                            <TextInput
-                                id="rider"
-                                type="text"
-                                class="mt-1 block w-full"
-                                v-model="form.rider"
-                                placeholder="Enter a valid URL for the rider"
-                                :class="{ 'border-red-500': form.rider && !isRiderUrlValid }"
-                            />
-                            <InputError
-                                v-if="form.rider && !isRiderUrlValid"
-                                class="mt-2"
-                                message="Invalid URL format. Please enter a valid URL."
-                            />
-                        </div>
 
-                        <div>
-                            <InputLabel for="feedback" value="Feedback" />
-                            <TextInput
-                                id="feedback"
-                                type="text"
-                                class="mt-1 block w-full"
-                                v-model="form.feedback"
-                                placeholder="Enter feedback as comma-separated values (mobile, email, url)"
-                                :class="{ 'border-red-500': form.feedback && !isFeedbackValid }"
-                            />
-                            <InputError
-                                v-if="form.feedback && !isFeedbackValid"
-                                class="mt-2"
-                                message="Invalid feedback format. Please enter valid mobile numbers, emails, or URLs."
-                            />
-                        </div>
 
                         <!-- Optional Fields Toggle -->
                         <div class="flex items-center space-x-2 mt-4">
@@ -321,39 +289,40 @@ const isFeedbackValid = computed(() => {
 
                         <!-- Optional Fields -->
                         <div v-if="showOptionalFields" class="space-y-6 mt-4">
+                            <!-- Rider Label Field -->
                             <div>
-                                <InputLabel for="voucher_code" value="Voucher Code" />
+                                <InputLabel for="rider" value="Rider URL" />
                                 <TextInput
-                                    id="voucher_code"
+                                    id="rider"
                                     type="text"
                                     class="mt-1 block w-full"
-                                    v-model="form.voucher_code"
-                                    placeholder="Enter voucher code"
+                                    v-model="form.rider"
+                                    placeholder="Enter a valid URL for the rider"
+                                    :class="{ 'border-red-500': form.rider && !isRiderUrlValid }"
+                                />
+                                <InputError
+                                    v-if="form.rider && !isRiderUrlValid"
+                                    class="mt-2"
+                                    message="Invalid URL format. Please enter a valid URL."
                                 />
                             </div>
-
+                            <!-- Feedback Label Field -->
                             <div>
-                                <InputLabel for="mobile" value="Mobile Number" />
+                                <InputLabel for="feedback" value="Feedback" />
                                 <TextInput
-                                    id="mobile"
-                                    type="tel"
-                                    class="mt-1 block w-full"
-                                    v-model="form.mobile"
-                                    placeholder="e.g., 09171234567"
-                                />
-                            </div>
-
-                            <div>
-                                <InputLabel for="country" value="Country Code" />
-                                <TextInput
-                                    id="country"
+                                    id="feedback"
                                     type="text"
                                     class="mt-1 block w-full"
-                                    v-model="form.country"
-                                    placeholder="e.g., PH"
+                                    v-model="form.feedback"
+                                    placeholder="Enter feedback as comma-separated values (mobile, email, url)"
+                                    :class="{ 'border-red-500': form.feedback && !isFeedbackValid }"
+                                />
+                                <InputError
+                                    v-if="form.feedback && !isFeedbackValid"
+                                    class="mt-2"
+                                    message="Invalid feedback format. Please enter valid mobile numbers, emails, or URLs."
                                 />
                             </div>
-
                             <!-- Reference Label Field -->
                             <div>
                                 <InputLabel for="referenceLabel" value="Reference Label" />
@@ -365,6 +334,39 @@ const isFeedbackValid = computed(() => {
                                     placeholder="e.g., Agent Name"
                                 />
                                 <InputError class="mt-2" />
+                            </div>
+                            <!-- Default Voucher Code Label Field -->
+                            <div>
+                                <InputLabel for="voucher_code" value="Voucher Code" />
+                                <TextInput
+                                    id="voucher_code"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    v-model="form.voucher_code"
+                                    placeholder="Enter voucher code"
+                                />
+                            </div>
+                            <!-- Default Mobile Label Field -->
+                            <div>
+                                <InputLabel for="mobile" value="Mobile Number" />
+                                <TextInput
+                                    id="mobile"
+                                    type="tel"
+                                    class="mt-1 block w-full"
+                                    v-model="form.mobile"
+                                    placeholder="e.g., 09171234567"
+                                />
+                            </div>
+                            <!-- Default Country Label Field -->
+                            <div>
+                                <InputLabel for="country" value="Country Code" />
+                                <TextInput
+                                    id="country"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    v-model="form.country"
+                                    placeholder="e.g., PH"
+                                />
                             </div>
                         </div>
                     </form>

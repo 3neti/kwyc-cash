@@ -17,7 +17,7 @@ class CheckVoucherMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (session()->has('voucher_checked')) {
+        if (session()->get('voucher_checked', false)) {
             return $next($request);
         }
         $voucher_code = $request->route(param: 'voucher');

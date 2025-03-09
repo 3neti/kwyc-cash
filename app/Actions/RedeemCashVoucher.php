@@ -35,12 +35,14 @@ class RedeemCashVoucher
         string $mobile,
         ?string $country = Contact::DEFAULT_COUNTRY,
         ?array $inputs = null,
+        ?string $rider = null,
         ?string $feedback = null
     ): bool {
         Log::info('Starting voucher redemption process', [
             'voucher_code' => $voucher_code,
             'mobile' => $mobile,
             'country' => $country,
+            'rider' => $rider,
             'feedback' => $feedback,
         ]);
 
@@ -52,6 +54,7 @@ class RedeemCashVoucher
             $result = Vouchers::redeem($voucher_code, $contact, array_merge([
                 'mobile' => $normalizedMobile,
                 'country' => $country,
+                'rider' => $rider,
                 'feedback' => $feedbackItems
             ], $inputs ?? []));
 
@@ -133,6 +136,7 @@ class RedeemCashVoucher
             'mobile' => ['required', (new Phone)->type('mobile')->country('PH')],
             'country' => ['nullable', 'string', 'min:2'],
             'inputs' => ['nullable', 'array'],
+            'rider' => ['nullable', 'string'],
             'feedback' => ['nullable', 'string'],
         ];
     }

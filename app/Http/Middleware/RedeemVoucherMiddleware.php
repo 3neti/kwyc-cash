@@ -20,7 +20,7 @@ class RedeemVoucherMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (session()->has('voucher_redeemed')) {
+        if (session()->get('voucher_redeemed', false)) {
             return $next($request);
         }
         // Use the old input to get the payload including the signature data

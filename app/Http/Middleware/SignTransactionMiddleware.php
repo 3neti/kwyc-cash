@@ -15,7 +15,7 @@ class SignTransactionMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (session()->has('signature_checked')) {
+        if (session()->get('signature_checked', false)) {
             return $next($request);
         }
         if($request->has('inputs.signature')) {

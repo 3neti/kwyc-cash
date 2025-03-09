@@ -37,7 +37,7 @@ class RedeemController extends Controller
 
     public function show(Request $request, $voucher)
     {
-        Session::flush();;
+        Session::forget(['voucher_checked', 'mobile_checked', 'signature_checked', 'voucher_redeemed']);
         $voucher = Voucher::where('code', $voucher)->first();
         $data = VoucherData::fromModel($voucher);
 //        dd('redeem.show', $request->all(), session()->getOldInput(), $voucher);

@@ -52,7 +52,7 @@ const formatDate = (datetime) => {
 // Automatically redirect to the rider page after the configured timeout
 onMounted(() => {
     setTimeout(() => {
-        router.get(route('rider'));
+        router.get(route('rider', { voucher: props.voucher.code }));
     }, props.redirectTimeout);
 });
 </script>

@@ -17,7 +17,7 @@ class CheckMobileMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (session()->has('mobile_checked')) {
+        if (session()->get('mobile_checked', false)) {
             return $next($request);
         }
         $mobile = $request->get('mobile');

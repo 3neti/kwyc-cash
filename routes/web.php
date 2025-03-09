@@ -47,7 +47,7 @@ Route::post('/auth/register-by-mobile', [MobileAuthController::class, 'registerB
 
 use App\Http\Controllers\RiderController;
 
-Route::get('rider', RiderController::class)->name('rider');
+Route::get('rider/{voucher}', RiderController::class)->name('rider');
 
 use App\Http\Controllers\Voucher\RedeemController;
 use App\Http\Middleware\CheckVoucherMiddleware;
