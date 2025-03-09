@@ -6,6 +6,7 @@ use FrittenKeeZ\Vouchers\Models\Voucher;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Data\VoucherData;
+use Illuminate\Support\Facades\Session;
 
 class RedeemController extends Controller
 {
@@ -36,6 +37,7 @@ class RedeemController extends Controller
 
     public function show(Request $request, $voucher)
     {
+        Session::flush();;
         $voucher = Voucher::where('code', $voucher)->first();
         $data = VoucherData::fromModel($voucher);
 //        dd('redeem.show', $request->all(), session()->getOldInput(), $voucher);
