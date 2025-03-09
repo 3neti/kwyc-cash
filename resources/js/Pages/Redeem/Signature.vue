@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { VueSignaturePad } from "@selemondev/vue3-signature-pad";
 import { ref } from "vue";
-import { useForm, router } from "@inertiajs/vue3";
+import { useForm } from "@inertiajs/vue3";
 
 const props = defineProps({
     payload: Object,
@@ -53,42 +53,54 @@ const submit = () => {
         }
     });
 };
-
 </script>
 
 <template>
-    <div class="grid place-items-center w-full min-h-screen">
-        <div class="flex flex-col items-center space-y-4">
-            <div class="bg-gray-100 p-6">
-                <VueSignaturePad
-                    ref="signaturePad"
-                    height="400px"
-                    width="1280px"
-                    :maxWidth="2"
-                    :minWidth="2"
-                    :disabled="state.disabled"
-                    :options="{
-                        penColor: state.options.penColor,
-                        backgroundColor: state.options.backgroundColor
-                    }"
-                />
-            </div>
+    <div class="flex flex-col items-center w-full min-h-screen p-4 bg-gray-50">
+        <div class="w-full max-w-[90vw] bg-gray-100 p-4 rounded-md shadow-lg">
+            <VueSignaturePad
+                ref="signaturePad"
+                class="w-full h-[50vh] max-h-[400px]"
+                :maxWidth="2"
+                :minWidth="2"
+                :disabled="state.disabled"
+                :options="{
+                    penColor: state.options.penColor,
+                    backgroundColor: state.options.backgroundColor
+                }"
+            />
+        </div>
 
-            <!-- Action Buttons -->
-            <div class="flex space-x-2">
-                <button type="button" @click="handleSave" class="px-4 py-2 bg-green-500 text-white rounded-md">
-                    Save & Submit
-                </button>
-                <button type="button" @click="handleClear" class="px-4 py-2 bg-red-500 text-white rounded-md">
-                    Clear
-                </button>
-                <button type="button" @click="handleUndo" class="px-4 py-2 bg-blue-500 text-white rounded-md">
-                    Undo
-                </button>
-                <button type="button" @click="handleDisabled" class="px-4 py-2 bg-gray-500 text-white rounded-md">
-                    Toggle Disabled
-                </button>
-            </div>
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap justify-center gap-2 mt-4">
+            <button
+                type="button"
+                @click="handleSave"
+                class="px-4 py-2 bg-green-500 text-white rounded-md w-full sm:w-auto"
+            >
+                Save & Submit
+            </button>
+            <button
+                type="button"
+                @click="handleClear"
+                class="px-4 py-2 bg-red-500 text-white rounded-md w-full sm:w-auto"
+            >
+                Clear
+            </button>
+            <button
+                type="button"
+                @click="handleUndo"
+                class="px-4 py-2 bg-blue-500 text-white rounded-md w-full sm:w-auto"
+            >
+                Undo
+            </button>
+            <button
+                type="button"
+                @click="handleDisabled"
+                class="px-4 py-2 bg-gray-500 text-white rounded-md w-full sm:w-auto"
+            >
+                Toggle Disabled
+            </button>
         </div>
     </div>
 </template>
