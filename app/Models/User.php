@@ -5,6 +5,7 @@ namespace App\Models;
 use Bavix\Wallet\Interfaces\{Customer, Wallet, WalletFloat};
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use FrittenKeeZ\Vouchers\Concerns\HasVouchers;
 use Illuminate\Notifications\Notifiable;
@@ -12,6 +13,7 @@ use Bavix\Wallet\Traits\HasWalletFloat;
 use Bavix\Wallet\Models\Transaction;
 use Illuminate\Support\Facades\DB;
 use Bavix\Wallet\Traits\CanPay;
+use Illuminate\Support\Str;
 use App\HasMobile;
 
 /**
@@ -100,5 +102,14 @@ class User extends Authenticatable implements Wallet, WalletFloat, Customer
         }
 
         return $success;
+    }
+
+    protected function Name(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value) {
+                return Str::title($value);
+            },
+        );
     }
 }
