@@ -16,9 +16,11 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+use App\Http\Middleware\CheckEmailMiddleware;
+
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth', 'verified', CheckEmailMiddleware::class])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -31,7 +33,7 @@ Route::resource('old-redeem', RedeemCashVoucherController::class)->parameter('ol
 use App\Http\Controllers\VoucherController;
 use App\Http\Controllers\WalletController;
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', CheckEmailMiddleware::class])->group(function () {
     Route::resource('vouchers', VoucherController::class)->only('index', 'create', 'store');
     Route::resource('wallet', WalletController::class)->only('create');
     Route::resource('campaign', CampaignController::class)->only('create');

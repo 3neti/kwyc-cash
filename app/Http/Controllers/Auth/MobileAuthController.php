@@ -12,7 +12,7 @@ use App\Models\User;
 class MobileAuthController extends Controller
 {
     protected string $login_redirect = 'vouchers.create';
-    protected string $register_redirect = 'profile.edit';
+    protected string $register_redirect = 'dashboard'; //'profile.edit';
 
     /**
      * Login an existing user by mobile number.
