@@ -4,6 +4,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed, watch, onMounted } from 'vue';
 
 defineProps({
     mustVerifyEmail: {
@@ -14,12 +15,46 @@ defineProps({
     },
 });
 
-const user = usePage().props.auth.user;
+const page = usePage();
+const user = page.props.auth.user;
+const appUrl = page.props.app.url;
+
+// Extract the domain name from the app URL
+const serverDomain = new URL(appUrl).hostname;
 
 const form = useForm({
     name: user.name,
     email: user.email,
-    mobile: user.mobile
+    mobile: user.mobile,
+    errors: {},
+});
+
+// Computed property to validate email
+const emailUsesServerDomain = computed(() => {
+    const emailDomain = form.email.split('@')[1]?.toLowerCase();
+    return emailDomain === serverDomain.toLowerCase();
+});
+
+// Function to validate email and set the error message
+const validateEmail = () => {
+    if (emailUsesServerDomain.value) {
+        form.errors.email = `Email cannot use the domain ${serverDomain}.`;
+    } else {
+        delete form.errors.email;
+    }
+};
+
+// Computed property to disable the save button if there are validation errors
+const isSaveDisabled = computed(() => {
+    return !!Object.keys(form.errors).length;
+});
+
+// Watch for changes in the email input
+watch(() => form.email, validateEmail);
+
+// Trigger validation on component mount
+onMounted(() => {
+    validateEmail();
 });
 </script>
 
@@ -34,7 +69,7 @@ const form = useForm({
                 Update your account's profile information and email address.
             </p>
         </header>
-
+{{ usePage().props.app.url }}
         <form
             @submit.prevent="form.patch(route('profile.update'))"
             class="mt-6 space-y-6"
@@ -48,7 +83,6 @@ const form = useForm({
                     class="mt-1 block w-full"
                     v-model="form.name"
                     required
-                    autofocus
                     autocomplete="name"
                 />
 
@@ -64,6 +98,7 @@ const form = useForm({
                     class="mt-1 block w-full"
                     v-model="form.email"
                     required
+                    autofocus
                     autocomplete="username"
                 />
 
@@ -107,7 +142,9 @@ const form = useForm({
             </div>
 
             <div class="flex items-center gap-4">
-                <PrimaryButton :disabled="form.processing">Save</PrimaryButton>
+                <PrimaryButton :disabled="form.processing || isSaveDisabled">
+                    Save
+                </PrimaryButton>
 
                 <Transition
                     enter-active-class="transition ease-in-out"

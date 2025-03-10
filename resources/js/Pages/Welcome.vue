@@ -1,6 +1,6 @@
 <script setup>
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import {Head, usePage} from '@inertiajs/vue3';
+import { Head, usePage } from '@inertiajs/vue3';
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
@@ -93,73 +93,50 @@ Echo.channel(`mobile`)
 
 <template>
     <Head title="Welcome" />
-    <div class="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
-        <div class="relative flex min-h-screen flex-col items-center justify-center selection:bg-[#FF2D20] selection:text-white">
-            <div class="relative w-full max-w-2xl px-6 lg:max-w-7xl">
-                <header class="flex justify-between items-center py-10">
-                    <h1 class="text-3xl font-bold text-gray-800 dark:text-white">
-                        {{ usePage().props.app.name }}
-                    </h1>
-                    <nav class="flex gap-4">
-                        <Link
-                            v-if="usePage().props.auth.user"
-                            :href="route('dashboard')"
-                            class="text-lg text-[#FF2D20] hover:text-[#FF2D20]/70"
-                        >
-                            Dashboard
-                        </Link>
-                        <template v-else>
-                            <Link
-                                :href="route('login')"
-                                class="text-lg text-[#FF2D20] hover:text-[#FF2D20]/70"
-                            >
-                                Log in
-                            </Link>
-                            <Link
-                                :href="route('register')"
-                                class="text-lg text-[#FF2D20] hover:text-[#FF2D20]/70"
-                            >
-                                Register
-                            </Link>
-                        </template>
-                    </nav>
-                </header>
+    <div class="flex min-h-screen flex-col items-center bg-gray-50 pt-6 sm:justify-center sm:pt-0">
+        <div class="w-full max-w-[600px] bg-white p-6 rounded-lg shadow-md flex flex-col items-center space-y-6">
+            <!-- App Name -->
+            <h1 class="text-3xl font-bold text-gray-800 mb-4 text-center">
+                {{ usePage().props.app.name }}
+            </h1>
 
-                <main class="mt-12">
-                    <div class="p-8 bg-white shadow-lg rounded-lg">
-                        <h2 class="text-2xl font-semibold text-gray-900 mb-4">
-                            Scan GCash QR Code To Enter
-                        </h2>
+            <!-- Page Title -->
+            <h2 class="text-2xl font-semibold text-gray-900 mb-4 text-center">
+                Topup To Enter
+            </h2>
 
-                        <div v-if="qrCode" class="text-center">
-                            <p class="text-2xl font-bold text-blue-600 mb-4">
-                                {{ formattedAmount }}
-                            </p>
-                            <img
-                                :src="qrCode"
-                                alt="Wallet Load QR Code"
-                                class="mx-auto mt-4 border border-gray-200 shadow-md p-2 bg-white rounded-lg"
-                            />
-                            <div class="flex justify-center mt-4">
-                                <PrimaryButton
-                                    class="bg-green-500 hover:bg-green-600"
-                                    @click="downloadQRCode"
-                                >
-                                    Download QR Code
-                                </PrimaryButton>
-                            </div>
-                        </div>
+            <!-- Amount Display -->
+            <p v-if="qrCode" class="text-2xl font-bold text-blue-600 mb-4 text-center">
+                {{ formattedAmount }}
+            </p>
 
-                        <p v-else class="text-sm text-gray-500">
-                            Generating QR Code...
-                        </p>
-                    </div>
-                </main>
-
-                <footer class="py-16 text-center text-sm text-black dark:text-white/70">
-                    Laravel v{{ $page.props.laravelVersion }} (PHP v{{ $page.props.phpVersion }})
-                </footer>
+            <!-- QR Code Display -->
+            <div v-if="qrCode" class="w-full aspect-square bg-gray-50 border border-gray-300 rounded-md flex items-center justify-center">
+                <img
+                    :src="qrCode"
+                    alt="Wallet Load QR Code"
+                    class="max-w-full max-h-full p-2 bg-white rounded-lg"
+                />
             </div>
+
+            <!-- Download QR Code Button -->
+            <PrimaryButton
+                v-if="qrCode"
+                class="bg-green-500 hover:bg-green-600 w-full flex justify-center"
+                @click="downloadQRCode"
+            >
+                Download QR Code
+            </PrimaryButton>
+
+            <!-- Status Message -->
+            <p v-else class="text-sm text-gray-500 text-center">
+                Generating QR Code...
+            </p>
         </div>
+
+        <!-- Footer -->
+        <footer class="py-16 text-center text-sm text-black dark:text-white/70">
+            DevOps Asïana v{{ '3.17' }} (DVO v{{ '8.2.25' }})
+        </footer>
     </div>
 </template>

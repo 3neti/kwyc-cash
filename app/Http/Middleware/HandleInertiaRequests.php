@@ -48,7 +48,8 @@ class HandleInertiaRequests extends Middleware
             'data' => [
                 'appLink' => env('APP_URL', 'http://kwyc-cash.test/'),
             ],
-            'app.name' => config('app.name')
+            'app.name' => config('app.name'),
+            'app.url' => config('app.url'),
         ];
     }
 }

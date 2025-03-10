@@ -11,7 +11,8 @@ use App\Models\User;
 
 class MobileAuthController extends Controller
 {
-    protected string $redirect = 'vouchers.create';
+    protected string $login_redirect = 'vouchers.create';
+    protected string $register_redirect = 'profile.edit';
 
     /**
      * Login an existing user by mobile number.
@@ -33,7 +34,7 @@ class MobileAuthController extends Controller
 
             return response()->json([
                 'message' => 'Logged in successfully via wallet deposit.',
-                'redirect' => route(name: $this->redirect, absolute: false)
+                'redirect' => route(name: $this->login_redirect, absolute: false)
             ]);
         }
 
@@ -80,7 +81,7 @@ class MobileAuthController extends Controller
 
         return response()->json([
             'message' => 'User registered, deposit completed, and logged in successfully.',
-            'redirect' => route(name: $this->redirect, absolute: false)
+            'redirect' => route(name: $this->register_redirect, absolute: false)
         ]);
     }
 }
