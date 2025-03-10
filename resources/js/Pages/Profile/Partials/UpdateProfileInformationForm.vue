@@ -38,7 +38,7 @@ const emailUsesServerDomain = computed(() => {
 // Function to validate email and set the error message
 const validateEmail = () => {
     if (emailUsesServerDomain.value) {
-        form.errors.email = `Email cannot use the domain ${serverDomain}.`;
+        form.errors.email = `Update your email from @${serverDomain} to your actual email address.`;
     } else {
         delete form.errors.email;
     }
@@ -69,7 +69,7 @@ onMounted(() => {
                 Update your account's profile information and email address.
             </p>
         </header>
-{{ usePage().props.app.url }}
+
         <form
             @submit.prevent="form.patch(route('profile.update'))"
             class="mt-6 space-y-6"

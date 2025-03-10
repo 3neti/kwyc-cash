@@ -136,7 +136,7 @@ Echo.channel(`mobile`)
 
         <!-- Footer -->
         <footer class="py-16 text-center text-sm text-black dark:text-white/70">
-            DevOps Asïana v{{ '3.17' }} (DVO v{{ '8.2.25' }})
+            {{ usePage().props.footer.message }}
         </footer>
     </div>
 </template>

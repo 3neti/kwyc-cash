@@ -50,6 +50,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'app.name' => config('app.name'),
             'app.url' => config('app.url'),
+            'footer.message' => env('FOOTER_MESSAGE', 'DevOps Asïana v3.17 (DVO v8.2.25)')
         ];
     }
 }
