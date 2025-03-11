@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use FrittenKeeZ\Vouchers\Models\Voucher;
 use Spatie\LaravelData\DataCollection;
 use App\Actions\GenerateCashVouchers;
+use App\Actions\ShareCashVoucher;
 use App\Models\{Cash, Contact};
 use Illuminate\Http\Request;
 use App\Data\VoucherData;
@@ -73,7 +74,7 @@ class VoucherController extends Controller
 
         $mobile = $request->input('mobile');
         $voucherCode = $request->input('voucher_code');
-        $amount = $request->input('amount');
+        $amount = $request->input('amount');//deprecated
 
         $voucher = Voucher::where('code', $voucherCode)->first();
 
@@ -81,10 +82,10 @@ class VoucherController extends Controller
             return redirect()->back()
                 ->withErrors(['voucher_code' => 'Invalid voucher code.']);
         }
-
         $contact = Contact::firstOrCreate(['mobile' => $mobile]);
         $voucher->addEntities($contact);
 
+        ShareCashVoucher::dispatch($voucher);
 
         return back()->with('event', [
             'name' => 'contact_attached',
