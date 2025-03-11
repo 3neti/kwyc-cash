@@ -24,7 +24,7 @@ class ContactVoucher extends Notification implements ShouldQueue
         $message = __('This voucher code :code with the amount of :amount pesos was shared with you by :name.', [
             'code' => $this->data->code,
             'amount' => $this->data->amount,
-            'name' => 'Lester'
+            'name' => $this->data->owner->name
         ]);
 
         return (new EngageSparkMessage())
