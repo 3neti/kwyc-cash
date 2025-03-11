@@ -37,6 +37,7 @@ Route::middleware(['auth', CheckEmailMiddleware::class])->group(function () {
     Route::resource('vouchers', VoucherController::class)->only('index', 'create', 'store');
     Route::resource('wallet', WalletController::class)->only('create');
     Route::resource('campaign', CampaignController::class)->only('create');
+    Route::post('voucher/action', [VoucherController::class, 'handleVoucherAction'])->name('voucher.action');
 });
 
 use App\Http\Controllers\Auth\MobileAuthController;

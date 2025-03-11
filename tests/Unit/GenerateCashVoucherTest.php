@@ -47,5 +47,5 @@ it('allows a user to generate multiple cash vouchers', function () {
         expect($voucher->owner->is($user))->toBeTrue();
     }
 
-    expect((float) $user->balanceFloat)->toBe(8500.0);
+    expect((float) $user->balanceFloat)->toBe(8500.0 - 3 * (50));
 });

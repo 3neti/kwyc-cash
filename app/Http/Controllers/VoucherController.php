@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Validator;
 use FrittenKeeZ\Vouchers\Models\Voucher;
+use App\Events\ContactAttachedToVoucher;
 use Spatie\LaravelData\DataCollection;
 use App\Actions\GenerateCashVouchers;
+use App\Models\{Cash, Contact};
 use Illuminate\Http\Request;
 use App\Data\VoucherData;
-use App\Models\Cash;
+
 
 class VoucherController extends Controller
 {
@@ -60,5 +62,33 @@ class VoucherController extends Controller
         return redirect()->back()
             ->with('message', 'Vouchers generated successfully!')
             ->with('data', $voucherData);
+    }
+
+    public function handleVoucherAction(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $request->validate([
+            'mobile' => 'required|string|min:11|max:15',
+            'voucher_code' => 'required|string',
+            'amount' => 'required|numeric',
+        ]);
+
+        $mobile = $request->input('mobile');
+        $voucherCode = $request->input('voucher_code');
+        $amount = $request->input('amount');
+
+        $user = $request->user();
+        $voucher = Voucher::where('code', $voucherCode)->first();
+        $contact = Contact::create($request->only('mobile'));
+        $entities = compact('contact');
+        $voucher->addEntities(...$entities);
+        ContactAttachedToVoucher::dispatch($user, $voucher);
+
+        $data = VoucherData::fromModel($voucher);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $data,
+            'message' => 'Voucher assigned successfully.',
+        ]);
     }
 }
