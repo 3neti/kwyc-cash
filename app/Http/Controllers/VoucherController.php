@@ -3,15 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Validation\ValidationException;
+use Propaganistas\LaravelPhone\Rules\Phone;
 use Illuminate\Support\Facades\Validator;
 use FrittenKeeZ\Vouchers\Models\Voucher;
-use App\Events\ContactAttachedToVoucher;
 use Spatie\LaravelData\DataCollection;
 use App\Actions\GenerateCashVouchers;
 use App\Models\{Cash, Contact};
 use Illuminate\Http\Request;
 use App\Data\VoucherData;
-
 
 class VoucherController extends Controller
 {
@@ -64,10 +63,10 @@ class VoucherController extends Controller
             ->with('data', $voucherData);
     }
 
-    public function handleVoucherAction(Request $request): \Illuminate\Http\JsonResponse
+    public function handleVoucherAction(Request $request): \Illuminate\Http\RedirectResponse
     {
         $request->validate([
-            'mobile' => 'required|string|min:11|max:15',
+            'mobile' => ['required', (new Phone)->type('mobile')->country('PH')],
             'voucher_code' => 'required|string',
             'amount' => 'required|numeric',
         ]);
@@ -76,19 +75,22 @@ class VoucherController extends Controller
         $voucherCode = $request->input('voucher_code');
         $amount = $request->input('amount');
 
-        $user = $request->user();
         $voucher = Voucher::where('code', $voucherCode)->first();
-        $contact = Contact::create($request->only('mobile'));
-        $entities = compact('contact');
-        $voucher->addEntities(...$entities);
-        ContactAttachedToVoucher::dispatch($user, $voucher);
 
-        $data = VoucherData::fromModel($voucher);
+        if (!$voucher) {
+            return redirect()->back()
+                ->withErrors(['voucher_code' => 'Invalid voucher code.']);
+        }
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $data,
-            'message' => 'Voucher assigned successfully.',
+        $contact = Contact::firstOrCreate(['mobile' => $mobile]);
+        $voucher->addEntities($contact);
+
+
+        return back()->with('event', [
+            'name' => 'contact_attached',
+            'data' => [
+                'voucher_code' => $voucher->code,
+            ],
         ]);
     }
 }

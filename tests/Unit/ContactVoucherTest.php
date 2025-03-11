@@ -10,7 +10,10 @@ uses(RefreshDatabase::class, WithFaker::class);
 it('allows a voucher to attach contact as an entity', function () {
     $user = User::factory()->create();
     $voucher = Vouchers::withOwner($user)->create();
-    $contact = Contact::factory()->create();
+//    $contact = Contact::factory()->create();
+    Contact::create(['mobile' => '09171234567']);
+    $contact = Contact::firstOrCreate(['mobile' => '09171234567']);
+    $contact = Contact::firstOrCreate(['mobile' => '09171234567']);
     $entities = compact('contact');
     if ($voucher instanceof Voucher) {
         $voucher->addEntities(...$entities);

@@ -1,11 +1,10 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
+import { useForm, usePage, router } from '@inertiajs/vue3';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-
-import { useForm, usePage, router } from '@inertiajs/vue3';
 import { ref, computed, watch } from 'vue';
 
 // Define props with default values
@@ -35,7 +34,16 @@ const form = useForm({
     tag: '',
 });
 
-const voucherCodes = ref('');
+// **Form for assigning mobile numbers to vouchers**
+const mobileForm = useForm({
+    mobile: "",
+    voucher_code: "",
+    amount: 0,
+    errors: {} // Store errors per voucher
+});
+
+const user = usePage().props.auth.user;
+const voucherCodes = ref([]);
 const statusMessage = ref('');
 
 // Get current balance from props
@@ -73,11 +81,16 @@ watch(statusMessage, (newMessage) => {
 const submit = () => {
     form.post(route('vouchers.store'), {
         onSuccess: (response) => {
+            console.log("Generated vouchers:", response.props.flash.data); // Debugging
+
             voucherCodes.value = response.props.flash.data?.map(voucher => ({
-                code: voucher.code,
-                amount: voucher.amount,
+                code: voucher.code ?? null,  // Ensure property exists
+                amount: voucher.amount ?? form.value, // Ensure amount exists
                 mobile: '',
+                status: 'unattached',
             })) ?? [];
+
+            console.log("voucherCodes after update:", voucherCodes.value);
             statusMessage.value = 'Vouchers generated successfully!';
         },
         onError: () => {
@@ -94,21 +107,43 @@ const submit = () => {
 };
 
 // Method to send mobile, voucher code, and amount to the controller
-const handleActionClick = (voucherCode, amount, mobile) => {
-    if (!mobile) {
-        alert("Please enter a mobile number.");
+// **Handle action click using mobileForm**
+
+const handleActionClick = (voucher) => {
+    console.log("Voucher object before form submission:", voucher);
+
+    if (!voucher.mobile) {
+        console.warn("Mobile number is missing for voucher:", voucher);
         return;
     }
 
-    axios.post(route('voucher.action'), {
-        mobile,
-        voucher_code: voucherCode,
-        amount,
-    }).then((response) => {
-        console.log(response.data.data)
-        alert(response.data.message);
-    }).catch((error) => {
-        alert("Failed to submit action. Please try again.");
+    if (!voucher.code || !voucher.amount) {
+        console.error("Voucher is missing required data:", voucher);
+        return;
+    }
+
+    mobileForm.mobile = voucher.mobile;
+    mobileForm.voucher_code = voucher.code;
+    mobileForm.amount = voucher.amount;
+
+    console.log("Form Data before submit:", mobileForm); // Debugging
+
+    mobileForm.post(route('voucher.action'), {
+        onSuccess: () => {
+            statusMessage.value = "Voucher assigned successfully!";
+            setTimeout(() => {
+                statusMessage.value = '';
+            }, 5000);
+        },
+        onError: (errors) => {
+            console.error("Validation Errors:", errors);
+            if (errors.mobile) {
+                mobileForm.errors = {
+                    ...mobileForm.errors,
+                    [voucher.code]: errors.mobile // Assign error to specific voucher
+                };
+            }
+        }
     });
 };
 
@@ -116,6 +151,32 @@ const handleActionClick = (voucherCode, amount, mobile) => {
 const redirectToLoadCredits = () => {
     router.get(route('wallet.create'));
 };
+
+watch(
+    () => usePage().props.flash.event,
+    (event) => {
+        if (event?.name === 'contact_attached') {
+            console.log('Event received:', event);
+
+            const { voucher_code } = event.data;
+            console.log('Voucher Code:', voucher_code);
+
+            // Find the voucher in the list
+            const index = voucherCodes.value.findIndex(v => v.code === voucher_code);
+            if (index !== -1) {
+                voucherCodes.value[index].status = 'attached';
+                statusMessage.value = `✅ Contact attached to ${voucher_code}!`;
+
+                // Clear message after 5 seconds
+                setTimeout(() => {
+                    statusMessage.value = '';
+                }, 5000);
+            }
+        }
+    },
+    { immediate: true }
+);
+
 </script>
 
 <template>
@@ -216,23 +277,25 @@ const redirectToLoadCredits = () => {
 
                         <div v-if="voucherCodes.length" class="mt-6 p-4 bg-green-100 rounded-md">
                             <p class="text-green-800 font-semibold mb-4">Generated Voucher Codes:</p>
-                            <table class="min-w-full bg-white border">
+                            <!-- Table of Voucher Codes with Status -->
+                            <table class="min-w-full bg-white border mt-6">
                                 <thead>
                                 <tr class="bg-gray-200">
                                     <th class="px-4 py-2 border">Voucher Code</th>
                                     <th class="px-4 py-2 border">Amount</th>
                                     <th class="px-4 py-2 border">Actions</th>
                                     <th class="px-4 py-2 border">Mobile</th>
+                                    <th class="px-4 py-2 border">Status</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 <tr v-for="(voucher, index) in voucherCodes" :key="voucher.code" class="border-t">
                                     <td class="px-4 py-2 border text-sm">{{ voucher.code }}</td>
-                                    <td class="px-4 py-2 border text-sm">{{ formatter.format( form.value) }}</td>
+                                    <td class="px-4 py-2 border text-sm">{{ formatter.format(form.value) }}</td>
                                     <td class="px-4 py-2 border text-sm text-center">
                                         <PrimaryButton
                                             class="bg-blue-500 hover:bg-blue-600"
-                                            @click="handleActionClick(voucher.code, form.value, voucher.mobile)"
+                                            @click="handleActionClick(voucher)"
                                         >
                                             Submit
                                         </PrimaryButton>
@@ -244,6 +307,13 @@ const redirectToLoadCredits = () => {
                                             placeholder="Enter mobile number"
                                             class="w-full border border-gray-300 p-1 rounded"
                                         />
+                                        <InputError class="mt-1 text-red-500" :message="mobileForm.errors[voucher.code]" />
+                                    </td>
+
+                                    <td class="px-4 py-2 border text-sm text-center">
+                                        <span :class="voucher.status === 'attached' ? 'text-green-600' : 'text-red-600'">
+                                            {{ voucher.status === 'attached' ? 'Attached' : 'Unattached' }}
+                                        </span>
                                     </td>
                                 </tr>
                                 </tbody>
