@@ -76,8 +76,10 @@ class RedeemCashVoucher
         } catch (VoucherNotFoundException $e) {
             $this->handleException($e, 'The voucher code provided was not found.');
 
-//        }  catch (VoucherSecretMismatch $e) {
-//            $this->handleException($e, 'The voucher secret is mismatched.');
+        }  catch (VoucherSecretMismatch $e) {
+            // Log and rethrow so middleware can handle it
+            \Log::warning("VoucherSecretMismatch for voucher: {$voucher_code}");
+            throw $e;
 
         } catch (VoucherAlreadyRedeemedException $e) {
             $this->handleException($e, 'The voucher has already been redeemed.');
