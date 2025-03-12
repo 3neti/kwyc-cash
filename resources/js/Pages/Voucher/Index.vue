@@ -1,8 +1,10 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import {computed, nextTick, onMounted, ref, watch} from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { saveAs } from 'file-saver';
+import Modal from '@/Components/Modal.vue'; // Import the Modal Component
+import { useForm, router } from "@inertiajs/vue3"; // Import Inertia utilities
 
 // Define props to receive the vouchers data
 const props = defineProps({
@@ -111,6 +113,40 @@ const filteredVouchers = computed(() => {
 watch(fieldFilter, () => {
     fieldFilterValue.value = '';
 });
+
+// Modal state
+const showModal = ref(false);
+const selectedVoucher = ref(null);
+
+// Open modal only if voucher is redeemed but not disbursed
+const openModal = (voucher) => {
+    if (voucher.redeemed && !voucher.disbursed) {
+        selectedVoucher.value = voucher;
+        showModal.value = true;
+    }
+};
+
+// Function to confirm re-disbursement
+const confirmReDisbursement = () => {
+    if (!selectedVoucher.value) return;
+
+    router.post(route('vouchers.re-disburse'), {
+        voucher_code: selectedVoucher.value.code,
+    }, {
+        onSuccess: () => {
+            showModal.value = false;
+        },
+        onError: (error) => {
+            console.error("Re-disbursement error:", error);
+        }
+    });
+};
+
+// Function to close modal
+const closeModal = () => {
+    showModal.value = false;
+    selectedVoucher.value = null;
+};
 </script>
 
 <template>
@@ -197,8 +233,12 @@ watch(fieldFilter, () => {
                         </tr>
                         </thead>
                         <tbody>
-                        <tr v-for="voucher in filteredVouchers" :key="voucher.code" class="border-t">
-                            <!-- Voucher Code & Mobile -->
+                        <tr v-for="voucher in filteredVouchers"
+                            :key="voucher.code"
+                            class="border-t hover:bg-gray-100 cursor-pointer"
+                            @click="openModal(voucher)"
+                        >
+                            <!-- Voucher Code -->
                             <td class="px-4 py-2 border text-sm">
                                 <div class="font-semibold">{{ voucher.code }}</div>
                                 <div class="text-gray-500">
@@ -206,21 +246,21 @@ watch(fieldFilter, () => {
                                 </div>
                             </td>
 
-                            <!-- Metadata as Pretty JSON -->
+                            <!-- Metadata -->
                             <td class="px-4 py-2 border text-xs whitespace-pre-wrap">
-        <pre class="bg-gray-50 p-2 rounded overflow-auto">
-            {{ formatJson({ ...voucher.metadata, signature: undefined }) }}
-        </pre>
+            <pre class="bg-gray-50 p-2 rounded overflow-auto">
+                {{ formatJson({ ...voucher.metadata, signature: undefined }) }}
+            </pre>
                             </td>
 
-                            <!-- Cash Data as Pretty JSON -->
+                            <!-- Cash Data -->
                             <td class="px-4 py-2 border text-xs whitespace-pre-wrap">
-        <pre class="bg-gray-50 p-2 rounded overflow-auto">
-            {{ formatJson(voucher.cash) }}
-        </pre>
+            <pre class="bg-gray-50 p-2 rounded overflow-auto">
+                {{ formatJson(voucher.cash) }}
+            </pre>
                             </td>
 
-                            <!-- Contact Information Column -->
+                            <!-- Contact Data -->
                             <td class="px-4 py-2 border text-sm">
                                 <div v-if="voucher.contact">
                                     <div class="font-semibold">Mobile: {{ voucher.contact.mobile }}</div>
@@ -229,7 +269,7 @@ watch(fieldFilter, () => {
                                 <div v-else class="text-gray-500">No Contact</div>
                             </td>
 
-                            <!-- Status Information -->
+                            <!-- Status -->
                             <td class="px-4 py-2 border text-sm">
                                 <div :class="voucher.redeemed ? 'text-red-600' : 'text-gray-500'">
                                     Redeemed: {{ voucher.redeemed ? 'Yes' : 'No' }}
@@ -242,7 +282,7 @@ watch(fieldFilter, () => {
                                 </div>
                             </td>
 
-                            <!-- Display Signature Separately if Available -->
+                            <!-- Display Signature -->
                             <td class="px-4 py-2 border text-center">
                                 <div v-if="voucher.metadata.signature" class="signature-box">
                                     <img :src="voucher.metadata.signature" alt="Signature" class="max-h-20 mx-auto border rounded" />
@@ -259,6 +299,32 @@ watch(fieldFilter, () => {
                 </div>
             </div>
         </div>
+        <!-- Re-Disbursement Modal -->
+        <Modal :show="showModal" @close="closeModal">
+            <div class="p-6">
+                <h2 class="text-xl font-semibold text-gray-800">
+                    Confirm Re-Disbursement
+                </h2>
+                <p class="mt-2 text-gray-600">
+                    Are you sure you want to re-disburse voucher <strong>{{ selectedVoucher?.code }}</strong>?
+                </p>
+
+                <div class="mt-6 flex justify-end space-x-4">
+                    <button
+                        class="px-4 py-2 bg-gray-500 text-white rounded-md"
+                        @click="closeModal"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        class="px-4 py-2 bg-blue-500 text-white rounded-md"
+                        @click="confirmReDisbursement"
+                    >
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </Modal>
     </AuthenticatedLayout>
 </template>
 
