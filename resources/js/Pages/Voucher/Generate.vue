@@ -80,15 +80,26 @@ watch(statusMessage, (newMessage) => {
 
 const submit = () => {
     form.post(route('vouchers.store'), {
+        replace: true, // Ensures partial update instead of full reload
+        preserveScroll: true, // Keeps scroll position when updating UI
         onSuccess: (response) => {
             console.log("Generated vouchers:", response.props.flash.data); // Debugging
 
-            voucherCodes.value = response.props.flash.data?.map(voucher => ({
-                code: voucher.code ?? null,  // Ensure property exists
-                amount: voucher.amount ?? form.value, // Ensure amount exists
-                mobile: '',
-                status: 'unattached',
-            })) ?? [];
+            if (response.props.flash.data?.length > 0) {
+                voucherCodes.value = response.props.flash.data.map(voucher => ({
+                    code: voucher.code,
+                    amount: voucher.amount ?? form.value,
+                    mobile: '',
+                    status: 'unattached',
+                }));
+            }
+
+            // voucherCodes.value = response.props.flash.data?.map(voucher => ({
+            //     code: voucher.code ?? null,  // Ensure property exists
+            //     amount: voucher.amount ?? form.value, // Ensure amount exists
+            //     mobile: '',
+            //     status: 'unattached',
+            // })) ?? [];
 
             console.log("voucherCodes after update:", voucherCodes.value);
             statusMessage.value = 'Vouchers generated successfully!';
@@ -129,6 +140,8 @@ const handleActionClick = (voucher) => {
     console.log("Form Data before submit:", mobileForm); // Debugging
 
     mobileForm.post(route('voucher.action'), {
+        preserveState: true, // Prevents unnecessary resets in Vue reactivity
+        preserveScroll: true, // Keeps scroll stable after submission
         onSuccess: () => {
             statusMessage.value = "Voucher assigned successfully!";
             setTimeout(() => {
@@ -173,8 +186,7 @@ watch(
                 }, 5000);
             }
         }
-    },
-    { immediate: true }
+    }
 );
 
 </script>
@@ -197,6 +209,7 @@ watch(
                                 <span v-if="statusMessage" class="text-sm text-gray-600">
                                     {{ statusMessage }}
                                 </span>
+                                <span v-else class="invisible">Placeholder</span> <!-- Invisible Placeholder -->
                             </div>
                             <div class="text-sm text-gray-600 font-semibold text-right">
                                 Current Balance: <span class="text-blue-600">{{ formattedBalance }}</span>
@@ -312,7 +325,7 @@ watch(
 
                                     <td class="px-4 py-2 border text-sm text-center">
                                         <span :class="voucher.status === 'attached' ? 'text-green-600' : 'text-red-600'">
-                                            {{ voucher.status === 'attached' ? 'Attached' : 'Unattached' }}
+                                            {{ voucher.status === 'attached' ? 'Assigned' : 'Unassigned' }}
                                         </span>
                                     </td>
                                 </tr>

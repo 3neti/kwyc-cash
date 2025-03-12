@@ -85,6 +85,11 @@ class VoucherController extends Controller
         $contact = Contact::firstOrCreate(['mobile' => $mobile]);
         $voucher->addEntities($contact);
 
+        /** Assigns a hashed secret to the `Cash` entity associated with a voucher. */
+        $cash = $voucher->getEntities(Cash::class)->first();
+        $cash->secret = $contact->mobile;
+        $cash->save();
+
         ShareCashVoucher::dispatch($voucher);
 
         return back()->with('event', [

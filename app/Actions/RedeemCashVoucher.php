@@ -5,11 +5,13 @@ namespace App\Actions;
 use FrittenKeeZ\Vouchers\Exceptions\VoucherAlreadyRedeemedException;
 use Propaganistas\LaravelPhone\Exceptions\CountryCodeException;
 use FrittenKeeZ\Vouchers\Exceptions\VoucherNotFoundException;
-use Illuminate\Support\Facades\{Log, Validator};
+use Illuminate\Support\Facades\{Hash, Log, Validator};
 use Propaganistas\LaravelPhone\Rules\Phone;
 use FrittenKeeZ\Vouchers\Facades\Vouchers;
 use Lorisleiva\Actions\Concerns\AsAction;
-use App\Models\Contact;
+use App\Exceptions\VoucherSecretMismatch;
+use FrittenKeeZ\Vouchers\Models\Voucher;
+use App\Models\{Cash, Contact};
 
 class RedeemCashVoucher
 {
@@ -51,6 +53,8 @@ class RedeemCashVoucher
             $contact = $this->getOrCreateContact($normalizedMobile, $country);
             $feedbackItems = $this->validateFeedback($feedback);
 
+            $this->checkSecret($voucher_code, $normalizedMobile);
+
             $result = Vouchers::redeem($voucher_code, $contact, array_merge([
                 'mobile' => $normalizedMobile,
                 'country' => $country,
@@ -70,6 +74,9 @@ class RedeemCashVoucher
 
         } catch (VoucherNotFoundException $e) {
             $this->handleException($e, 'The voucher code provided was not found.');
+
+        }  catch (VoucherSecretMismatch $e) {
+            $this->handleException($e, 'The voucher secret is mismatched.');
 
         } catch (VoucherAlreadyRedeemedException $e) {
             $this->handleException($e, 'The voucher has already been redeemed.');
@@ -223,5 +230,28 @@ class RedeemCashVoucher
         );
 
         return !$validator->fails();
+    }
+
+    /**
+     * Validates the voucher secret against the normalized mobile number.
+     *
+     * This method retrieves the associated `Cash` entity of the given voucher code
+     * and checks if the hashed `secret` matches the normalized mobile number.
+     * If a mismatch occurs, a `VoucherSecretMismatch` exception is thrown.
+     *
+     * @param string $voucher_code The unique code of the voucher.
+     * @param string $normalizedMobile The normalized mobile number to check against the secret.
+     *
+     * @throws VoucherSecretMismatch If the provided mobile number does not match the stored hash.
+     */
+    private function checkSecret(string $voucher_code, string $normalizedMobile): void
+    {
+        // Retrieve the cash entity associated with the voucher code
+        $cash = Voucher::where('code', $voucher_code)->first()->getEntities(Cash::class)->first();
+
+        // Check if the cash entity exists and contains a secret
+        if ($cash instanceof Cash && isset($cash->secret) && !Hash::check($normalizedMobile, $cash->secret)) {
+            throw new VoucherSecretMismatch;
+        }
     }
 }

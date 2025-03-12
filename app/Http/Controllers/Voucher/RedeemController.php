@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Data\VoucherData;
 use Illuminate\Support\Facades\Session;
 
+/** TODO: Rename to RedeemSuccessController */
 class RedeemController extends Controller
 {
     /**
@@ -40,14 +41,11 @@ class RedeemController extends Controller
         Session::forget(['voucher_checked', 'mobile_checked', 'signature_checked', 'voucher_redeemed']);
         $voucher = Voucher::where('code', $voucher)->first();
         $data = VoucherData::fromModel($voucher);
-//        dd('redeem.show', $request->all(), session()->getOldInput(), $voucher);
 
         return inertia('Redeem/Success', [
             'voucher' => $data,
             'redirectTimeout' => config('kwyc-cash.redeem.success.redirect_timeout')
         ]);
-
-//        return redirect()->route('rider');
     }
 
     /**
