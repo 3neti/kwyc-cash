@@ -53,6 +53,7 @@ class RedeemCashVoucher
             $contact = $this->getOrCreateContact($normalizedMobile, $country);
             $feedbackItems = $this->validateFeedback($feedback);
 
+            // 🔴 Do not catch `VoucherSecretMismatch` here!
             $this->checkSecret($voucher_code, $normalizedMobile);
 
             $result = Vouchers::redeem($voucher_code, $contact, array_merge([
@@ -75,8 +76,8 @@ class RedeemCashVoucher
         } catch (VoucherNotFoundException $e) {
             $this->handleException($e, 'The voucher code provided was not found.');
 
-        }  catch (VoucherSecretMismatch $e) {
-            $this->handleException($e, 'The voucher secret is mismatched.');
+//        }  catch (VoucherSecretMismatch $e) {
+//            $this->handleException($e, 'The voucher secret is mismatched.');
 
         } catch (VoucherAlreadyRedeemedException $e) {
             $this->handleException($e, 'The voucher has already been redeemed.');
@@ -244,6 +245,29 @@ class RedeemCashVoucher
      *
      * @throws VoucherSecretMismatch If the provided mobile number does not match the stored hash.
      */
+//    private function checkSecret(string $voucher_code, string $normalizedMobile): void
+//    {
+//        // Retrieve the voucher by code
+//        $voucher = Voucher::where('code', $voucher_code)->first();
+//
+//        // Ensure the voucher exists before proceeding
+//        if (!$voucher) {
+//            throw new VoucherNotFoundException("Voucher not found.");
+//        }
+//
+//        // Retrieve the cash entity associated with the voucher
+//        $cash = $voucher->getEntities(Cash::class)->first();
+//
+//        // Ensure cash exists and has a secret before checking
+//        if (!($cash instanceof Cash) || !isset($cash->secret)) {
+//            return; // No secret means no verification needed
+//        }
+//
+//        // If the secret exists but does not match the hash, throw an exception
+//        if (!Hash::check($normalizedMobile, $cash->secret)) {
+//            throw new VoucherSecretMismatch();
+//        }
+//    }
     private function checkSecret(string $voucher_code, string $normalizedMobile): void
     {
         // Retrieve the cash entity associated with the voucher code
