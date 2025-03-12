@@ -35,8 +35,11 @@ class RedeemVoucherMiddleware
                 throw new \RuntimeException(RedeemCashVoucher::getErrorMessage()); // More specific exception
             }
         } catch (VoucherSecretMismatch $voucherSecretMismatch) {
-            return redirect()->route('redeem-unassigned', ['voucher' => $validated['voucher_code']]);
-        } catch (\Exception $exception) {
+            \Log::error('VoucherSecretMismatch caught for voucher: ' . $validated['voucher_code']);
+            return response()->redirectToRoute('redeem-unassigned', ['voucher' => $validated['voucher_code']]);
+//            return redirect()->route('redeem-unassigned', ['voucher' => $validated['voucher_code']]);
+        }
+        catch (\Exception $exception) {
             \Log::error('Error in Middleware: ' . $exception->getMessage()); // Log error
             return redirect()->back()->withErrors(['message' => 'An unexpected error occurred. Please try again.']);
         }
