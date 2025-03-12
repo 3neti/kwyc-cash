@@ -74,4 +74,12 @@ use App\Http\Controllers\SignatureController;
 Route::resource('signature', SignatureController::class)
     ->only(['create', 'store']);
 
+use App\Data\VoucherData;
+
+Route::get('redeem-unassigned/{voucher}', function (string $voucher){
+    $voucher = \FrittenKeeZ\Vouchers\Models\Voucher::where('code', $voucher)->first();
+    return inertia()->render('Redeem/FailedUnassigned', [
+        'voucher' => VoucherData::fromModel($voucher)
+    ]);
+})->name('redeem-unassigned');
 require __DIR__.'/auth.php';

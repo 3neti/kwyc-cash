@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
+use App\Exceptions\VoucherSecretMismatch;
 use Illuminate\Support\Facades\Validator;
 use App\Actions\RedeemCashVoucher;
 use Illuminate\Http\Request;
@@ -29,8 +30,17 @@ class RedeemVoucherMiddleware
         $action = app(RedeemCashVoucher::class);
         $validated = Validator::make($payload, $action->rules())->validate();
 //        $action->run(...$validated);
-        if(!$action->run(...$validated))
-            throw new \Exception(RedeemCashVoucher::getErrorMessage());
+        try {
+            if (!$action->run(...$validated)) {
+                throw new \RuntimeException(RedeemCashVoucher::getErrorMessage()); // More specific exception
+            }
+        } catch (VoucherSecretMismatch $voucherSecretMismatch) {
+            return redirect()->route('redeem-unassigned', ['voucher' => $validated['voucher_code']]);
+        } catch (\Exception $exception) {
+            \Log::error('Error in Middleware: ' . $exception->getMessage()); // Log error
+            return redirect()->back()->withErrors(['message' => 'An unexpected error occurred. Please try again.']);
+        }
+
         session()->put('voucher_redeemed', true);
 
         return $next($request);
