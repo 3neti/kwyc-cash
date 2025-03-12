@@ -83,9 +83,10 @@ Route::get('redeem-unassigned/{voucher}', function (string $voucher){
     ]);
 })->name('redeem-unassigned');
 
-use App\Http\Controllers\RedisburseCashVoucherController;
+use App\Http\Controllers\ReDisburseCashVoucherController;
 
-Route::post('/vouchers/re-disburse', RedisburseCashVoucherController::class)
+
+Route::post('/vouchers/re-disburse', ReDisburseCashVoucherController::class)
     ->name('vouchers.re-disburse');
 
 require __DIR__.'/auth.php';
