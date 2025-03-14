@@ -13,8 +13,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             SystemUserSeeder::class,
-            VoucherSeeder::class,
-            CampaignSeeder::class
+//            VoucherSeeder::class,
+//            CampaignSeeder::class
         ]);
     }
 }

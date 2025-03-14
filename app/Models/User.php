@@ -13,6 +13,7 @@ use Illuminate\Notifications\Notifiable;
 use Bavix\Wallet\Traits\HasWalletFloat;
 use Bavix\Wallet\Models\Transaction;
 use Illuminate\Support\Facades\DB;
+use App\Actions\AutoUserCampaign;
 use Bavix\Wallet\Traits\CanPay;
 use Illuminate\Support\Str;
 use App\HasMobile;
@@ -79,6 +80,9 @@ class User extends Authenticatable implements Wallet, WalletFloat, Customer
         static::creating(function (User $user) {
             $user->country = empty($user->country) ? self::DEFAULT_COUNTRY : $user->country;
         });
+//        static::created(function (User $user) {
+//            AutoUserCampaign::dispatch($user);
+//        });
     }
 
     public function campaigns(): \Illuminate\Database\Eloquent\Relations\HasMany
