@@ -228,7 +228,6 @@ onMounted(() => {
 
 <template>
     <GuestLayout>
-        {{ form.country }}
         <Head title="Redeem Voucher" />
 
         <form @submit.prevent="submit" class="space-y-4">
