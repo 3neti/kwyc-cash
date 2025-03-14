@@ -9,6 +9,7 @@
         "php": "^8.2",
         "bavix/laravel-wallet": "^11.4",
         "brick/money": "^0.10.0",
+        "endroid/qr-code": "^6.0",
         "frittenkeez/laravel-vouchers": "^0.5.0",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^11.31",
@@ -16,6 +17,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
         "lbhurtado/sms": "^2.3",
+        "league/uri": "^7.5",
         "lorisleiva/laravel-actions": "^2.8",
         "predis/predis": "^2.0",
         "propaganistas/laravel-phone": "^5.3",
@@ -23,6 +25,7 @@
         "resend/resend-php": "^0.15.1",
         "spatie/laravel-data": "^4.13",
         "spatie/laravel-model-status": "^1.18",
+        "spatie/laravel-schemaless-attributes": "^2.5",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {
@@ -41,7 +44,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "app/Helpers/Utils.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

@@ -89,4 +89,8 @@ use App\Http\Controllers\ReDisburseCashVoucherController;
 Route::post('/vouchers/re-disburse', ReDisburseCashVoucherController::class)
     ->name('vouchers.re-disburse');
 
+use App\Actions\AutoCampaignCheckin;
+
+Route::get('campaign-checkin/{campaign}', AutoCampaignCheckin::class)->name('campaign-checkin');
+
 require __DIR__.'/auth.php';

@@ -13,14 +13,7 @@ use App\Models\Cash;
 class RedeemCashVoucherController extends Controller
 {
     /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
+     * @deprecated
      * Show the form for creating a new resource.
      */
     public function create()
@@ -68,7 +61,7 @@ class RedeemCashVoucherController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * TODO: transfer this
      */
     public function show(string $voucher)
     {
@@ -79,29 +72,5 @@ class RedeemCashVoucherController extends Controller
             'status' => $voucher?->isRedeemed() ? ($cash?->disbursed ? 'completed' : 'pending') : 'pending',
             'data' => $voucher ? ['code' => $voucher->code, 'disbursed' => $cash?->disbursed] : null,
         ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

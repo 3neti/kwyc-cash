@@ -10,10 +10,22 @@ import { debounce } from 'lodash';
 
 // Define props with default values
 const props = defineProps({
+    country: {
+        type: String,
+        default: 'PH',
+    },
+    inputs: {
+        type: String,
+        default: '',
+    },
+    rider: {
+        type: String,
+        default: '',
+    },
     referenceLabel: {
         type: String,
         default: 'Agent',
-    }
+    },
 });
 
 // Extract URL search parameters
@@ -27,13 +39,21 @@ try {
     console.warn('Invalid JSON format for inputs parameter');
 }
 
+// Fallback to props.inputs if parsedInputs is empty or invalid
+let fallbackInputs = {};
+try {
+    fallbackInputs = JSON.parse(props.inputs) ?? {};
+} catch (e) {
+    console.warn('Invalid JSON format for props.inputs, using empty object');
+}
+
 // Initialize form with default values from URL parameters or props
 const form = useForm({
     voucher_code: params.get('voucher_code') ?? '',
     mobile: params.get('mobile') ?? '',
-    country: params.get('country') ?? 'PH',
-    inputs: parsedInputs,
-    rider: params.get('rider') ?? '',
+    country: params.get('country') ?? props.country,
+    inputs: Object.keys(parsedInputs).length ? parsedInputs : fallbackInputs, // Prioritize parsedInputs
+    rider: params.get('rider') ?? props.rider,
     feedback: params.get('feedback')
 });
 
@@ -208,6 +228,7 @@ onMounted(() => {
 
 <template>
     <GuestLayout>
+        {{ form.country }}
         <Head title="Redeem Voucher" />
 
         <form @submit.prevent="submit" class="space-y-4">

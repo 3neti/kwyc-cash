@@ -34,11 +34,33 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => fn () => $user ? array_merge($user->toArray(), [
-                    'balanceFloat' => (float) $user->balanceFloat,
-                    'balanceUpdatedAt' => $user->updated_at,
-                ]) : null,
+                'user' => function () use ($user) {
+                    if (!$user) {
+                        return null;
+                    }
+
+                    // Eager load necessary relationships
+                    $user->load(['currentCampaign']);
+//                    $user->currentCampaign->append('QRCodeURI');
+
+                    return array_merge($user->toArray(), [
+                        'balanceFloat' => (float) $user->balanceFloat,
+                        'balanceUpdatedAt' => $user->updated_at,
+                        'current_campaign' => $user->currentCampaign
+                            ? array_merge($user->currentCampaign->toArray(), [
+                                'url' => $user->currentCampaign->url,
+                                'QRCodeURI' => $user->currentCampaign->QRCodeURI,
+                            ])
+                            : null,
+                    ]);
+                },
             ],
+//            'auth' => [
+//                'user' => fn () => $user ? array_merge($user->toArray(), [
+//                    'balanceFloat' => (float) $user->balanceFloat,
+//                    'balanceUpdatedAt' => $user->updated_at,
+//                ]) : null,
+//            ],
             'flash' => [
                 'message' => fn () => $request->session()->get('message'),
                 'warning' => fn () => $request->session()->get('warning'),

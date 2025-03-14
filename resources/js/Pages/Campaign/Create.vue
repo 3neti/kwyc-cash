@@ -6,14 +6,16 @@ import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 
 import { computed, ref, watch, onMounted } from 'vue';
-import QRCode from 'qrcode';
+import { useForm, usePage } from '@inertiajs/vue3';
+// import QRCode from 'qrcode';
+// import {c} from "../../../../public/build/assets/app-DVwCrQln.js";
 
 // Define props with default values
 const props = defineProps({
-    inputs: {
-        type: String,
-        default: '',
-    },
+    // inputs: {
+    //     type: String,
+    //     default: '',
+    // },
     availableInputs: {
         type: String,
         default: '',
@@ -24,74 +26,24 @@ const props = defineProps({
     }
 });
 
+const user = usePage().props.auth.user;
+const campaign = user.current_campaign;
+
 // Form state with default values
 const form = ref({
     voucher_code: '',
     mobile: '',
     country: 'PH',
     referenceLabel: '',
-    inputs: props.inputs,
-    rider: props.rider,
-    feedback: '',
+    inputs: JSON.stringify(campaign.inputs ?? {}), // Ensure valid JSON string
+    feedback: campaign.feedback ?? '',
+    rider: campaign.rider ?? '',
 });
 
 // Show optional fields toggle
 const showOptionalFields = ref(false);
-const generatedLink = ref('');
+
 const qrCodeDataUrl = ref('');
-
-// Generate the link based on form inputs
-const generateLink = () => {
-    const baseUrl = `${window.location.origin}${route('old-redeem.create', {}, false)}`;
-    const params = new URLSearchParams();
-
-    if (form.value.voucher_code) params.append('voucher_code', form.value.voucher_code);
-    if (form.value.mobile) params.append('mobile', form.value.mobile);
-    if (form.value.country) params.append('country', form.value.country);
-    if (form.value.referenceLabel) params.append('referenceLabel', form.value.referenceLabel);
-    if (form.value.feedback && isFeedbackValid.value) {
-        params.append('feedback', form.value.feedback);
-    }
-
-    // Properly append the inputs as a JSON string if it's a valid object-like string
-    if (form.value.inputs) {
-        try {
-            // Validate and stringify the inputs safely
-            const inputsObject = JSON.parse(form.value.inputs.replace(/'/g, '"'));
-            params.append('inputs', JSON.stringify(inputsObject));
-        } catch (e) {
-            console.error('Invalid inputs JSON format', e);//remove this
-        }
-    }
-
-    // Append the rider parameter if valid
-    if (form.value.rider && isRiderUrlValid.value) {
-        params.append('rider', form.value.rider);
-    }
-
-    generatedLink.value = `${baseUrl}?${params.toString()}`;
-    generateQRCode();
-};
-
-// Generate the QR Code from the generated link
-const generateQRCode = async () => {
-    try {
-        qrCodeDataUrl.value = await QRCode.toDataURL(generatedLink.value, {
-            width: 200,
-            margin: 2,
-        });
-    } catch (error) {
-        console.error('Error generating QR code:', error);
-    }
-};
-
-// Automatically generate the link and QR code when form inputs change
-watch(form, generateLink, { deep: true });
-
-// Automatically generate the QR code on page load
-onMounted(() => {
-    generateLink();
-});
 
 // Toggle visibility of optional fields
 const toggleOptionalFields = () => {
@@ -100,12 +52,32 @@ const toggleOptionalFields = () => {
 
 // Function to download the QR code image
 const downloadQRCode = () => {
-    if (!qrCodeDataUrl.value) return;
+    const qrCodeDataUrl = user.current_campaign?.QRCodeURI;
 
-    const link = document.createElement('a');
-    link.href = qrCodeDataUrl.value;
-    link.download = 'campaign-qr-code.png';
+    if (!qrCodeDataUrl) return;
+
+    // Extract Base64 data (remove the "data:image/png;base64," prefix)
+    const base64Data = qrCodeDataUrl.replace(/^data:image\/png;base64,/, "");
+
+    // Convert Base64 to a Blob
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: "image/png" });
+
+    // Create a temporary link to download the QR code
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "campaign-qr-code.png";
+    document.body.appendChild(link);
     link.click();
+
+    // Cleanup
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
 };
 
 // Reactive state to track JSON validation
@@ -150,8 +122,6 @@ const toggleInputField = (input) => {
 };
 
 onMounted(() => {
-    generateLink(); // Generate the initial link
-
     // Parse the initial inputs from form.value.inputs and set checkboxes accordingly
     try {
         const initialInputs = form.value.inputs ? JSON.parse(form.value.inputs) : {};
@@ -181,6 +151,17 @@ watch(() => form.value.inputs, (newVal) => {
         console.error('Invalid JSON format:', e);
     }
 });
+
+watch(form, (newForm) => {
+    try {
+        campaign.inputs = JSON.parse(newForm.inputs); // Only assign if valid JSON
+    } catch (e) {
+        console.error('Skipping invalid JSON update to campaign.inputs');
+    }
+
+    campaign.feedback = newForm.feedback;
+    campaign.rider = newForm.rider;
+}, { deep: true });
 
 const isFeedbackValid = computed(() => {
     if (!form.value.feedback) return true; // Empty field is valid
@@ -217,13 +198,13 @@ const isFeedbackValid = computed(() => {
                     <div class="text-center">
 <!--                        <h3 class="text-lg font-semibold mb-2">Campaign</h3>-->
                         <p class="text-blue-500 font-medium mb-4 break-all">
-                            <a :href="generatedLink" target="_blank" class="underline" :title="generatedLink">
+                            <a :href="campaign.url" target="_blank" class="underline" :title="campaign.url">
                                 Claim Here
                             </a>
                         </p>
-                        <div v-if="qrCodeDataUrl" class="mt-4">
+                        <div v-if="campaign.QRCodeURI" class="mt-4">
                             <img
-                                :src="qrCodeDataUrl"
+                                :src="campaign.QRCodeURI"
                                 alt="Campaign QR Code"
                                 class="mx-auto"
                             />

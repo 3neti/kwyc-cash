@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use FrittenKeeZ\Vouchers\Concerns\HasVouchers;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Notifications\Notifiable;
 use Bavix\Wallet\Traits\HasWalletFloat;
 use Bavix\Wallet\Models\Transaction;
@@ -24,6 +25,9 @@ use App\HasMobile;
  * @property string      $email
  * @property string      $mobile
  * @property string      $country
+ * @property Collection  $campaigns
+ * @property Campaign    $currentCampaign
+ *
  *
  * @method int getKey()
  * @method Transaction depositFloat(float|int|string $amount, ?array $meta = null, bool $confirmed = true)
@@ -77,6 +81,11 @@ class User extends Authenticatable implements Wallet, WalletFloat, Customer
         });
     }
 
+    public function campaigns(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Campaign::class);
+    }
+
     public function cashes()
     {
         return $this->belongsToMany(Cash::class, 'cash_user', 'user_id', 'cash_id')
@@ -111,5 +120,28 @@ class User extends Authenticatable implements Wallet, WalletFloat, Customer
                 return Str::title($value);
             },
         );
+    }
+
+    public function currentCampaign(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Campaign::class, 'campaign_id');
+    }
+
+    /**
+     * Accessor for the currentCampaign attribute.
+     */
+    public function getCurrentCampaignAttribute()
+    {
+        return $this->currentCampaign()->first();
+    }
+
+    /**
+     * Mutator for the currentCampaign attribute.
+     *
+     * @param Campaign|int $value The ID of the campaign to associate with the user.
+     */
+    public function setCurrentCampaignAttribute(Campaign|int $value): void
+    {
+        $this->attributes['campaign_id'] = $value instanceof Campaign ? $value->id : $value;
     }
 }
