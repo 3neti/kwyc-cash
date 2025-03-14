@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CampaignUpdateRequest;
 use App\Http\Requests\ProfileUpdateRequest;
 use Illuminate\Support\Facades\{Auth, Redirect, Validator};
 use Illuminate\Http\RedirectResponse;
@@ -55,10 +56,10 @@ class CampaignController extends Controller
         //
     }
 
-    public function update(Request $request): RedirectResponse
+    public function update(CampaignUpdateRequest $request): RedirectResponse
     {
         $campaign = $request->user()->currentCampaign;
-        $campaign->fill($request->all());
+        $campaign->fill($request->validated());
         $campaign->save();
 
         return redirect()->back();

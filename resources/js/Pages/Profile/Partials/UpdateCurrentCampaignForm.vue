@@ -4,6 +4,7 @@ import { Link, useForm, usePage } from '@inertiajs/vue3';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import TextInput from '@/Components/TextInput.vue';
+import Checkbox from "@/Components/Checkbox.vue";
 
 const page = usePage();
 const user = page.props.auth.user;
@@ -11,6 +12,7 @@ const campaign = user.current_campaign;
 
 const form = useForm({
     name: campaign.name,
+    disabled: campaign.disabled,
     errors: {},
 });
 </script>
@@ -44,6 +46,17 @@ const form = useForm({
                 />
 
                 <InputError class="mt-2" :message="form.errors.name" />
+            </div>
+
+            <div>
+                <InputLabel for="disabled" value="Disabled" />
+
+                <Checkbox
+                    id="disabled"
+                    v-model:checked="form.disabled"
+                />
+
+                <InputError class="mt-2" :message="form.errors.disabled" />
             </div>
 
             <div class="flex items-center gap-4">

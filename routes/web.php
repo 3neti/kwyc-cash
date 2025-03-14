@@ -91,7 +91,10 @@ Route::post('/vouchers/re-disburse', ReDisburseCashVoucherController::class)
     ->name('vouchers.re-disburse');
 
 use App\Actions\AutoCampaignCheckin;
+use App\Http\Middleware\CheckCampaignDisabled;
 
-Route::get('campaign-checkin/{campaign}', AutoCampaignCheckin::class)->name('campaign-checkin');
+Route::get('campaign-checkin/{campaign}', AutoCampaignCheckin::class)
+    ->middleware(CheckCampaignDisabled::class)
+    ->name('campaign-checkin');
 
 require __DIR__.'/auth.php';

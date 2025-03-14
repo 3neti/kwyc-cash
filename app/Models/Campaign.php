@@ -32,7 +32,12 @@ class Campaign extends Model
         'name',
         'inputs',
         'feedback',
-        'rider'
+        'rider',
+        'disabled'
+    ];
+
+    protected $appends = [
+        'disabled'
     ];
 
     protected $casts = [
