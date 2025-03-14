@@ -36,7 +36,7 @@ use App\Http\Controllers\WalletController;
 Route::middleware(['auth', CheckEmailMiddleware::class])->group(function () {
     Route::resource('vouchers', VoucherController::class)->only('index', 'create', 'store');
     Route::resource('wallet', WalletController::class)->only('create');
-    Route::resource('campaign', CampaignController::class)->only('index', 'create', 'show');
+    Route::resource('campaign', CampaignController::class)->only('index', 'create', 'update', 'show');
     Route::patch('campaign/{campaign}/set-current', [CampaignController::class, 'setCurrent'])->name('campaign.setCurrent');
     Route::post('voucher/action', [VoucherController::class, 'handleVoucherAction'])->name('voucher.action');
 });

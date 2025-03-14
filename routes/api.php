@@ -1,7 +1,8 @@
 <?php
 
-use App\Http\Controllers\{CampaignController, ConfirmController, DepositController, WalletController};
+use App\Http\Controllers\{ConfirmController, DepositController, WalletController};
 use App\Http\Controllers\API\RedeemCashVoucherController;
+use App\Http\Controllers\API\UpdateCampaignController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
@@ -15,4 +16,4 @@ Route::get('/vouchers/{voucherCode}/show', [RedeemCashVoucherController::class, 
 Route::get('deposit', DepositController::class)->name('deposit');
 Route::post('confirm', ConfirmController::class)->name('confirm');
 Route::get('qr-code', [WalletController::class, 'generateDepositQRCode'])->name('wallet.qr-code');
-Route::patch('/campaigns/{campaign}', [CampaignController::class, 'update'])->name('api.campaign.update');
+Route::patch('/campaigns/{campaign}', [UpdateCampaignController::class, 'update'])->name('api.campaign.update');

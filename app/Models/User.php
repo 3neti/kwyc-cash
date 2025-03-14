@@ -80,9 +80,9 @@ class User extends Authenticatable implements Wallet, WalletFloat, Customer
         static::creating(function (User $user) {
             $user->country = empty($user->country) ? self::DEFAULT_COUNTRY : $user->country;
         });
-//        static::created(function (User $user) {
-//            AutoUserCampaign::dispatch($user);
-//        });
+        static::created(function (User $user) {
+            AutoUserCampaign::run($user);
+        });
     }
 
     public function campaigns(): \Illuminate\Database\Eloquent\Relations\HasMany

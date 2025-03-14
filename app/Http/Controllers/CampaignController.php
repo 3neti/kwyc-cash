@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\{Auth, Validator};
+use App\Http\Requests\ProfileUpdateRequest;
+use Illuminate\Support\Facades\{Auth, Redirect, Validator};
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use App\Models\{Campaign, User};
 use Illuminate\Http\Request;
@@ -53,38 +55,47 @@ class CampaignController extends Controller
         //
     }
 
-    public function update(Request $request, Campaign $campaign)
+    public function update(Request $request): RedirectResponse
     {
-        // Validate the request data
-        $validated = Validator::make($request->all(), [
-            'inputs' => 'nullable|json',
-            'feedback' => 'nullable|string',
-            'rider' => 'nullable|url',
-        ])->validate();
+        $campaign = $request->user()->currentCampaign;
+        $campaign->fill($request->all());
+        $campaign->save();
 
-        Log::info('Campaign update request validated', [
-            'campaign_id' => $campaign->id,
-            'validated_data' => $validated,
-        ]);
-
-        // Ensure 'inputs' is stored as a JSON object, not a stringified JSON
-        if (!empty($validated['inputs']) && is_string($validated['inputs'])) {
-            $validated['inputs'] = json_decode($validated['inputs'], true); // Convert string to array
-        }
-
-        // Update campaign fields
-        $campaign->update($validated);
-
-        Log::info('Campaign successfully updated', [
-            'campaign_id' => $campaign->id,
-            'updated_campaign' => $campaign->fresh(),
-        ]);
-
-        return response()->json([
-            'message' => 'Campaign updated successfully',
-            'campaign' => $campaign->fresh(), // Return fresh campaign data
-        ]);
+        return redirect()->back();
     }
+
+//    public function update(Request $request, Campaign $campaign)
+//    {
+//        // Validate the request data
+//        $validated = Validator::make($request->all(), [
+//            'inputs' => 'nullable|json',
+//            'feedback' => 'nullable|string',
+//            'rider' => 'nullable|url',
+//        ])->validate();
+//
+//        Log::info('Campaign update request validated', [
+//            'campaign_id' => $campaign->id,
+//            'validated_data' => $validated,
+//        ]);
+//
+//        // Ensure 'inputs' is stored as a JSON object, not a stringified JSON
+//        if (!empty($validated['inputs']) && is_string($validated['inputs'])) {
+//            $validated['inputs'] = json_decode($validated['inputs'], true); // Convert string to array
+//        }
+//
+//        // Update campaign fields
+//        $campaign->update($validated);
+//
+//        Log::info('Campaign successfully updated', [
+//            'campaign_id' => $campaign->id,
+//            'updated_campaign' => $campaign->fresh(),
+//        ]);
+//
+//        return response()->json([
+//            'message' => 'Campaign updated successfully',
+//            'campaign' => $campaign->fresh(), // Return fresh campaign data
+//        ]);
+//    }
 
     /**
      * Remove the specified resource from storage.
