@@ -14,7 +14,8 @@ return [
     ],
     'payment' => [
         'server' => [
-            'url' => env('PAYMENT_SERVER_URL', 'https://fibi.disburse.cash/api/generate-qr'),
+//            'url' => env('PAYMENT_SERVER_URL', 'https://fibi.disburse.cash/api/generate-qr'),
+            'url' => env('PAYMENT_SERVER_URL', 'https://fibi.seqrcode.net/api/generate-qr'),
             'token' => env('PAYMENT_SERVER_TOKEN')
         ],
         'qr-code' => [

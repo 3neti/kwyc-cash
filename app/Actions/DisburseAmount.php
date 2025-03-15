@@ -85,6 +85,11 @@ class DisburseAmount
         $response = Http::withHeaders($this->getRequestHeaders())
             ->post($this->getDisbursementUrl(), $body);
 
+        Log::info('Disbursement HTTP', [
+            'headers' => $this->getRequestHeaders(),
+            'url' => $this->getDisbursementUrl()
+        ]);
+
         Log::info('Disbursement response', [
             'status' => $response->status(),
             'body' => $response->body(),
