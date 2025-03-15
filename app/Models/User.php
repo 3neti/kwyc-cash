@@ -26,6 +26,7 @@ use App\HasMobile;
  * @property string      $email
  * @property string      $mobile
  * @property string      $country
+ * @property bool        $system_user
  * @property Collection  $campaigns
  * @property Campaign    $currentCampaign
  *
@@ -49,7 +50,8 @@ class User extends Authenticatable implements Wallet, WalletFloat, Customer
         'email',
         'password',
         'mobile',
-        'country'
+        'country',
+        'system_user'
     ];
 
     /**
@@ -83,6 +85,19 @@ class User extends Authenticatable implements Wallet, WalletFloat, Customer
         static::created(function (User $user) {
             AutoUserCampaign::run($user);
         });
+    }
+
+    protected function systemUser(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => (bool) $value,
+            set: fn ($value) => (bool) $value
+        );
+    }
+
+    public function isSystemUser(): bool
+    {
+        return $this->system_user;
     }
 
     public function campaigns(): \Illuminate\Database\Eloquent\Relations\HasMany
@@ -147,5 +162,10 @@ class User extends Authenticatable implements Wallet, WalletFloat, Customer
     public function setCurrentCampaignAttribute(Campaign|int $value): void
     {
         $this->attributes['campaign_id'] = $value instanceof Campaign ? $value->id : $value;
+    }
+
+    public static function system(): ?self
+    {
+        return self::where('system_user', true)->first();
     }
 }

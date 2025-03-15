@@ -12,11 +12,12 @@ class AutoUserCampaign
     public function handle(User $user): void
     {
         $campaign = new Campaign;
-        $campaign->name = config('kwyc-cash.campaign.name');
         $campaign->user()->associate($user);
+        $campaign->name = config('kwyc-cash.campaign.name');
         $campaign->inputs = json_decode(config('kwyc-cash.campaign.inputs'));
         $campaign->rider = config('kwyc-cash.campaign.rider');
         $campaign->save();
+
         if ($user->currentCampaign == null) {
             $user->currentCampaign = $campaign;
             $user->save();

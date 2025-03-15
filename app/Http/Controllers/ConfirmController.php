@@ -7,6 +7,7 @@ use App\Events\DepositConfirmedFromUnknownMobile;
 use Propaganistas\LaravelPhone\Rules\Phone;
 use Illuminate\Support\Facades\Log;
 use App\Events\DepositConfirmed;
+use App\Actions\DepositAmount;
 use Illuminate\Http\Request;
 use App\Models\User;
 
@@ -42,7 +43,7 @@ class ConfirmController extends Controller
         if ($user instanceof User) {
             try {
                 // Deposit the specified amount into the user's wallet
-                $transaction = $user->depositFloat($validated['amount']);
+                $transaction = DepositAmount::run($user, $validated['amount']);
 
                 // Dispatch event with the user and the deposited amount
                 DepositConfirmed::dispatch($user, $validated['amount'], $transaction->updated_at);

@@ -6,6 +6,7 @@ use Bavix\Wallet\Internal\Exceptions\ExceptionInterface;
 use Illuminate\Support\Facades\{Auth, Hash, Log};
 use App\Http\Controllers\Controller;
 use App\Events\DepositConfirmed;
+use App\Actions\DepositAmount;
 use Illuminate\Http\Request;
 use App\Models\User;
 
@@ -65,7 +66,7 @@ class MobileAuthController extends Controller
 
         try {
             // Automatically deposit the specified amount to the new user's wallet
-            $transaction = $user->depositFloat($amount);
+            $transaction = DepositAmount::run($user, $amount);
 
             // Dispatch the deposit confirmed event
             DepositConfirmed::dispatch($user, $amount, $transaction->updated_at);

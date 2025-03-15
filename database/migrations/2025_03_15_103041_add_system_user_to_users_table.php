@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->foreignUuid('campaign_id')->nullable();
+            $table->boolean('system_user')->default(false)->after('country');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('campaign_id');
+            $table->dropColumn('system_user');
         });
     }
 };
