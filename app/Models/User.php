@@ -39,7 +39,6 @@ class User extends Authenticatable implements Wallet, WalletFloat, Customer
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasWalletFloat, CanPay, HasVouchers, HasMobile;
 
-
     /**
      * The attributes that are mass assignable.
      *
@@ -167,5 +166,10 @@ class User extends Authenticatable implements Wallet, WalletFloat, Customer
     public static function system(): ?self
     {
         return self::where('system_user', true)->first();
+    }
+
+    public function routeNotificationForEngageSpark(): string
+    {
+        return $this->mobile;
     }
 }

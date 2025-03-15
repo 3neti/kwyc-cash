@@ -9,6 +9,7 @@
         "php": "^8.2",
         "bavix/laravel-wallet": "^11.4",
         "brick/money": "^0.10.0",
+        "cesargb/laravel-magiclink": "^2.24",
         "endroid/qr-code": "^6.0",
         "frittenkeez/laravel-vouchers": "^0.5.0",
         "inertiajs/inertia-laravel": "^2.0",

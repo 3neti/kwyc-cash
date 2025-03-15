@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use Bavix\Wallet\Internal\Exceptions\ExceptionInterface;
 use Illuminate\Support\Facades\{Auth, Hash, Log};
 use App\Http\Controllers\Controller;
+use App\Events\LoggedInViaMobile;
 use App\Events\DepositConfirmed;
 use App\Actions\DepositAmount;
 use Illuminate\Http\Request;
@@ -32,6 +33,8 @@ class MobileAuthController extends Controller
             $request->session()->regenerate();
 
             Log::info("User with mobile {$mobile} logged in via wallet deposit.");
+
+            LoggedInViaMobile::dispatch($user);
 
             return response()->json([
                 'message' => 'Logged in successfully via wallet deposit.',
