@@ -13,13 +13,12 @@ class SystemUserSeeder extends Seeder
      */
     public function run(): void
     {
-        $name =  env('SYSTEM_NAME', 'System User');
-        $email = env('SYSTEM_EMAIL', 'lester@hurtado.ph');
-        $mobile = env('SYSTEM_MOBILE', '09173011987');
-        $password = env('SYSTEM_PASSWORD', 'password');
-        $country = env('SYSTEM_COUNTRY', 'PH');
-        $prefund = env('SYSTEM_PREFUND', 1000000000.0);
-        // Create a default system user
+        $name =  config('kwyc-cash.system.user.name');
+        $email = config('kwyc-cash.system.user.email');
+        $mobile = config('kwyc-cash.system.user.mobile');
+        $password = config('kwyc-cash.system.user.password');
+        $country = config('kwyc-cash.system.user.country') ;
+        $prefund = config('kwyc-cash.system.user.prefund');
         $user = User::updateOrCreate(
             ['email' => $email], // Ensure this email matches your intention
             [

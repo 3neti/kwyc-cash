@@ -43,5 +43,15 @@ return [
         'available-inputs' => env('CAMPAIGN_AVAILABLE_INPUTS',  'message, name, first_name, last_name, reference, location, code, signature'),
         'rider' => env('CAMPAIGN_RIDER', 'https://run.mocky.io/v3/45aab9ca-55d8-4964-bf53-d7b6f29a12c0')
     ],
-    'currency' => env('CURRENCY', 'PHP')
+    'currency' => env('CURRENCY', 'PHP'),
+    'system' => [
+        'user' => [
+            'name' => env('SYSTEM_NAME', 'System User'),
+            'email' => env('SYSTEM_EMAIL', 'lester@hurtado.ph'),
+            'mobile' => env('SYSTEM_MOBILE', '09173011987'),
+            'password' => env('SYSTEM_PASSWORD', 'password'),
+            'country' => env('SYSTEM_COUNTRY', 'PH'),
+            'prefund' => env('SYSTEM_PREFUND', 1000000000.0)
+        ]
+    ],
 ];
