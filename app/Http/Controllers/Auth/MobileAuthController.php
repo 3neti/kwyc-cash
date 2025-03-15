@@ -81,7 +81,12 @@ class MobileAuthController extends Controller
 
         // Log the user in immediately after registration
         Auth::login($user);
+
         $request->session()->regenerate();
+
+        Log::info("User with mobile {$mobile} registered and logged in via wallet deposit.");
+
+        LoggedInViaMobile::dispatch($user);
 
         return response()->json([
             'message' => 'User registered, deposit completed, and logged in successfully.',
