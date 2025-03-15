@@ -58,6 +58,11 @@ const submit = () => {
         class="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0"
     >
         <div class="w-full max-w-[600px] bg-white p-4 rounded-lg shadow-md flex flex-col items-center space-y-4">
+            <!-- "Sign Here" Label -->
+            <p class="text-gray-700 font-semibold text-lg self-start">
+                ✍️ Sign Here:
+            </p>
+            <!-- Signature Pad Container -->
             <div class="w-full aspect-square bg-gray-50 border border-gray-300 rounded-md overflow-hidden">
                 <VueSignaturePad
                     ref="signaturePad"
@@ -70,6 +75,10 @@ const submit = () => {
                         backgroundColor: state.options.backgroundColor
                     }"
                 />
+                <!-- Faded Placeholder Text (if no signature) -->
+                <p v-if="!form.signature_data" class="absolute inset-0 flex items-center justify-center text-gray-400 text-lg pointer-events-none">
+                    Tap and sign here
+                </p>
             </div>
 
             <!-- Action Buttons -->
