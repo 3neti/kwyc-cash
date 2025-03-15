@@ -102,22 +102,39 @@ Echo.channel(`mobile`)
 
             <!-- Page Title -->
             <h2 class="text-2xl font-semibold text-gray-900 mb-4 text-center">
-                Topup To Enter
+                Scan GCash To Enter
             </h2>
 
-            <!-- Amount Display -->
-            <p v-if="qrCode" class="text-2xl font-bold text-blue-600 mb-4 text-center">
-                {{ formattedAmount }}
-            </p>
+            <div class="flex flex-col items-center space-y-2">
+                <!-- QR Code (20% smaller) -->
+                <div class="w-full flex justify-center">
+                    <img
+                        v-if="qrCode"
+                        :src="qrCode"
+                        alt="QR Code"
+                        class="w-[288px] h-[288px] max-w-none"
+                    />
+                </div>
 
-            <!-- QR Code Display -->
-            <div v-if="qrCode" class="w-full aspect-square bg-gray-50 border border-gray-300 rounded-md flex items-center justify-center">
-                <img
-                    :src="qrCode"
-                    alt="Wallet Load QR Code"
-                    class="max-w-full max-h-full p-2 bg-white rounded-lg"
-                />
+                <!-- Formatted Amount - Smaller & Right-Aligned -->
+                <p v-if="qrCode" class="text-sm font-medium text-blue-600 text-center">
+                    {{ formattedAmount }}
+                </p>
             </div>
+
+<!--            &lt;!&ndash; Amount Display &ndash;&gt;-->
+<!--            <p v-if="qrCode" class="text-2xl font-bold text-blue-600 mb-4 text-center">-->
+<!--                {{ formattedAmount }}-->
+<!--            </p>-->
+
+<!--            &lt;!&ndash; QR Code Display &ndash;&gt;-->
+<!--            <div v-if="qrCode" class="w-full aspect-square bg-gray-50 border border-gray-300 rounded-md flex items-center justify-center">-->
+<!--                <img-->
+<!--                    :src="qrCode"-->
+<!--                    alt="Wallet Load QR Code"-->
+<!--                    class="max-w-full max-h-full p-2 bg-white rounded-lg"-->
+<!--                />-->
+<!--            </div>-->
 
             <!-- Download QR Code Button -->
             <PrimaryButton
