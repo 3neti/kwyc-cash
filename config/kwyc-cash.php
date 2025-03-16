@@ -55,4 +55,9 @@ return [
             'prefund' => env('SYSTEM_PREFUND', 1000000000.0)
         ]
     ],
+    'ui' => [
+        'vouchers' => [
+            'pages' => env('VOUCHERS_PAGES', 10)
+        ]
+    ],
 ];

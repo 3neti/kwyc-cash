@@ -12,6 +12,7 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    pagination: Object,
 });
 
 // Format JSON in a pretty way
@@ -61,6 +62,10 @@ const downloadCsv = () => {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     saveAs(blob, 'vouchers.csv');
 };
+
+// Reactive state
+const vouchers = ref(props.vouchers);
+const pagination = ref(props.pagination);
 
 // Filter dropdown states
 const redeemedFilter = ref('');
@@ -147,6 +152,24 @@ const closeModal = () => {
     showModal.value = false;
     selectedVoucher.value = null;
 };
+
+// Fetch a new page of vouchers
+const fetchPage = (page) => {
+    router.get(route('vouchers.index', { page }), {
+        preserveState: true,
+        preserveScroll: true,
+        only: ['vouchers', 'pagination'], // Reload only required data
+    });
+};
+
+// Update vouchers when props change
+watch(() => props.vouchers, (newVouchers) => {
+    vouchers.value = newVouchers;
+});
+
+watch(() => props.pagination, (newPagination) => {
+    pagination.value = newPagination;
+});
 </script>
 
 <template>
@@ -292,6 +315,33 @@ const closeModal = () => {
                         </tr>
                         </tbody>
                     </table>
+
+                    <!-- Pagination Controls -->
+                    <div class="mt-4 flex justify-between items-center">
+                        <button
+                            v-if="pagination.prev_page_url"
+                            @click="fetchPage(pagination.current_page - 1)"
+                            class="px-4 py-2 bg-gray-500 text-white rounded-md"
+                        >
+                            Previous
+                        </button>
+
+                        <span class="text-gray-700">
+                            Page {{ pagination.current_page }} of {{ pagination.last_page }}
+                        </span>
+
+                        <button
+                            v-if="pagination.next_page_url"
+                            @click="fetchPage(pagination.current_page + 1)"
+                            class="px-4 py-2 bg-blue-500 text-white rounded-md"
+                        >
+                            Next
+                        </button>
+                    </div>
+
+                    <div v-if="!vouchers.length" class="mt-4 text-gray-500">
+                        No vouchers available.
+                    </div>
 
                     <div v-if="!props.vouchers.length" class="mt-4 text-gray-500">
                         No vouchers available.

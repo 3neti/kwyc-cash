@@ -18,9 +18,22 @@ class VoucherController extends Controller
     public function index(Request $request): \Inertia\Response|\Inertia\ResponseFactory
     {
         $user = $request->user();
+        $pages = config('kwyc-cash.ui.vouchers.pages');
+        $vouchers = $user->vouchers()
+            ->latest() // Orders by latest first
+            ->paginate($pages) // Keep pagination enabled
+            ->withQueryString(); // Keeps query parameters during navigation
 
-        return inertia('Voucher/Index',[
-            'vouchers' => new DataCollection(VoucherData::class, $user->vouchers),
+        return inertia('Voucher/Index', [
+            'vouchers' => new DataCollection(VoucherData::class, $vouchers->items()),
+            'pagination' => [
+                'current_page' => $vouchers->currentPage(),
+                'last_page' => $vouchers->lastPage(),
+                'per_page' => $vouchers->perPage(),
+                'total' => $vouchers->total(),
+                'next_page_url' => $vouchers->nextPageUrl(),
+                'prev_page_url' => $vouchers->previousPageUrl(),
+            ],
         ]);
     }
 
