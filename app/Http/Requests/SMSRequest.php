@@ -23,8 +23,8 @@ class SMSRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'from' => ['required', 'string'],
-            'to' => ['required', (new Phone)->type('mobile')->country('PH')],
+            'from' => ['required', (new Phone)->type('mobile')->country('PH')],
+            'to' => ['required', 'string'],
             'message' => ['required', 'string'],
         ];
     }

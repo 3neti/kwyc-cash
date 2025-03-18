@@ -1,5 +1,8 @@
 <?php
 
+// Load SMS routes first to ensure commands are registered
+require base_path('routes/sms.php');
+
 use App\Http\Controllers\{ConfirmController, DepositController, SMSController, WalletController};
 use App\Http\Controllers\API\RedeemCashVoucherController;
 use App\Http\Controllers\API\UpdateCampaignController;

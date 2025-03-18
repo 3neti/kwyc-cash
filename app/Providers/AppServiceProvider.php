@@ -6,6 +6,7 @@ use App\Actions\ProcessVoucherRedemption;
 use FrittenKeeZ\Vouchers\Models\Voucher;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Vite;
+use App\Services\SMSRouterService;
 use Illuminate\Support\Number;
 
 class AppServiceProvider extends ServiceProvider
@@ -15,7 +16,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Ensure SMSRouterService is a singleton (shared instance)
+        $this->app->singleton(SMSRouterService::class, function ($app) {
+            return new SMSRouterService();
+        });
     }
 
     /**

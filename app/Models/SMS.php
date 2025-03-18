@@ -32,4 +32,11 @@ class SMS extends Model
     {
         return static::create($SMSData->toArray());
     }
+
+    public static function booted(): void
+    {
+        static::created(function (SMS $sms) {
+
+        });
+    }
 }
