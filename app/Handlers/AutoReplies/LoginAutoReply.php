@@ -16,7 +16,7 @@ class LoginAutoReply implements AutoReplyInterface
             $action->response(redirect('/dashboard'));
             $urlToDashBoard = MagicLink::create($action)->url;
 
-            return 'Login url: ' . $urlToDashBoard;
+            return __('Login: :url', ['url' => $urlToDashBoard]);
         }
 
         return null; // Now valid with the updated interface

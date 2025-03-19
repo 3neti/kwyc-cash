@@ -2,7 +2,7 @@
 
 namespace App\Middleware;
 
-use App\Handlers\AutoReplies\{HelloAutoReply, HelpAutoReply, LoginAutoReply, PingAutoReply};
+use App\Handlers\AutoReplies\{BalanceAutoReply, HelpAutoReply, LoginAutoReply, PingAutoReply};
 use Illuminate\Support\Facades\Notification;
 use App\Contracts\AutoReplyInterface;
 use Illuminate\Support\Facades\Log;
@@ -12,7 +12,7 @@ use Closure;
 class AutoReplySMS implements SMSMiddlewareInterface
 {
     protected array $handlers = [
-        'HELLO' => HelloAutoReply::class,
+        'BALANCE' => BalanceAutoReply::class,
         'HELP' => HelpAutoReply::class,
         'PING' => PingAutoReply::class,
         'LOGIN' => LoginAutoReply::class

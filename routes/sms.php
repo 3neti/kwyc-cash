@@ -3,14 +3,15 @@
 use App\Middleware\{AutoReplySMS, CleanSMS, LogSMS, RateLimitSMS, StoreSMS, RedeemVoucherMiddleware};
 use Illuminate\Support\Facades\Log;
 use App\Services\SMSRouterService;
+use App\Handlers\SMSTransfer;
 
 Log::info('📌 SMS Routes Loaded');
 
 /** @var SMSRouterService $router */
 $router = resolve(SMSRouterService::class);
-Log::info("✅  Resolved SMSRouterService instance.", ['instance' => get_class($router)]);
+//Log::info("✅  Resolved SMSRouterService instance.", ['instance' => get_class($router)]);
 
-//TODO: add transfer route
+$router->register('TRANSFER {mobile} {amount}', SMSTransfer::class);
 
 $router->register(
     '{message}',
@@ -22,8 +23,8 @@ $router->register(
         ]);
     },
     [
-//        RateLimitSMS::class,     // Prevent spam
-//        CleanSMS::class,  // Normalize message
+        RateLimitSMS::class,     // Prevent spam
+        CleanSMS::class,  // Normalize message
         RedeemVoucherMiddleware::class,  // 🔥 Auto-redeem vouchers if detected
         AutoReplySMS::class,     // Auto-reply for predefined messages
 //        LogSMS::class,   // Log SMS

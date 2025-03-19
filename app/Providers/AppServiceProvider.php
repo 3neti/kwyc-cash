@@ -35,7 +35,6 @@ class AppServiceProvider extends ServiceProvider
         Number::useCurrency(config('kwyc-cash.currency'));
 
         if (File::exists(base_path('routes/sms.php'))) {
-            Log::info("📌 Forcing SMS routes to load via AppServiceProvider.");
             require base_path('routes/sms.php');
         }
     }
