@@ -28,4 +28,14 @@ class SMSRequest extends FormRequest
             'message' => ['required', 'string'],
         ];
     }
+
+    public function validated($key = null, $default = null)
+    {
+        $validated = parent::validated();
+
+        // Convert 'from' to a dialing format
+        $validated['from'] = phone($validated['from'], 'PH')->formatForMobileDialingInCountry('PH');
+
+        return $validated;
+    }
 }
