@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\{File, Log, Vite};
 use App\Actions\ProcessVoucherRedemption;
 use FrittenKeeZ\Vouchers\Models\Voucher;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\Vite;
 use App\Services\SMSRouterService;
 use Illuminate\Support\Number;
 
@@ -33,5 +33,10 @@ class AppServiceProvider extends ServiceProvider
 //            DisburseAmount::dispatch($voucher);
         });
         Number::useCurrency(config('kwyc-cash.currency'));
+
+        if (File::exists(base_path('routes/sms.php'))) {
+            Log::info("📌 Forcing SMS routes to load via AppServiceProvider.");
+            require base_path('routes/sms.php');
+        }
     }
 }
