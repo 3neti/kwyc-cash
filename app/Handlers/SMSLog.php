@@ -6,6 +6,7 @@ use App\Contracts\SMSHandlerInterface;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
 
+/** @deprecated  */
 class SMSLog implements SMSHandlerInterface
 {
     /**

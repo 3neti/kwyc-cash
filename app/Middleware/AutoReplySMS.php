@@ -2,9 +2,11 @@
 
 namespace App\Middleware;
 
-use App\Handlers\AutoReplies\{HelloAutoReply, HelpAutoReply, PingAutoReply};
+use App\Handlers\AutoReplies\{HelloAutoReply, HelpAutoReply, LoginAutoReply, PingAutoReply};
+use Illuminate\Support\Facades\Notification;
 use App\Contracts\AutoReplyInterface;
 use Illuminate\Support\Facades\Log;
+use App\Notifications\SMSAutoReply;
 use Closure;
 
 class AutoReplySMS implements SMSMiddlewareInterface
@@ -13,6 +15,7 @@ class AutoReplySMS implements SMSMiddlewareInterface
         'HELLO' => HelloAutoReply::class,
         'HELP' => HelpAutoReply::class,
         'PING' => PingAutoReply::class,
+        'LOGIN' => LoginAutoReply::class
     ];
 
     public function handle(string $message, string $from, string $to, Closure $next)
@@ -26,12 +29,14 @@ class AutoReplySMS implements SMSMiddlewareInterface
                 $handler = new $handlerClass();
                 $reply = $handler->reply($from, $to, $message);
 
-                Log::info("AutoReply Sent", compact('from', 'to', 'reply'));
+                if (!is_null($reply)) { // ✅ Only send auto-reply if it's not null
+                    Log::info("AutoReply Sent", compact('from', 'to', 'reply'));
 
-                // Simulate sending an SMS reply
-                // SMSService::send($from, $reply);
+                    Notification::route('engage_spark', $from)
+                        ->notify(new SMSAutoReply($reply));
 
-                return response()->json(['message' => "AutoReply: " . $reply]); // 🔥 Early Exit
+                    return response()->json(['message' => "AutoReply: " . $reply]); // 🔥 Early Exit
+                }
             }
         }
 
