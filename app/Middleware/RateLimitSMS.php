@@ -23,8 +23,8 @@ class RateLimitSMS implements SMSMiddlewareInterface
                 'error' => 'Rate limit exceeded. Try again later.',
             ], 429);
         }
-
         Cache::put($cacheKey, $attempts + 1, now()->addMinutes($this->decayMinutes));
+        Log::info("🛠 Running RateLimitSMS Middleware", compact('message', 'from', 'to'));
 
         return $next($message, $from, $to);
     }

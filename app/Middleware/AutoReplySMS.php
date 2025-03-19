@@ -39,6 +39,7 @@ class AutoReplySMS implements SMSMiddlewareInterface
                 }
             }
         }
+        Log::info("🛠 Running AutoReplySMS Middleware", compact('message', 'from', 'to'));
 
         return $next($message, $from, $to); // Continue to logging & storage
     }

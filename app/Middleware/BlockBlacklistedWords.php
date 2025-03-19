@@ -22,6 +22,7 @@ class BlockBlacklistedWords implements SMSMiddlewareInterface
                 return response()->json(['error' => 'Message contains prohibited words.'], 403);
             }
         }
+        Log::info("🛠 Running BlockBlacklistedWords Middleware", compact('message', 'from', 'to'));
 
         return $next($message, $from, $to);
     }

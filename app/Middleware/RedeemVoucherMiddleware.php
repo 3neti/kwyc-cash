@@ -25,6 +25,7 @@ class RedeemVoucherMiddleware implements SMSMiddlewareInterface
 
             // Handle redemption (execute `RedeemCashVoucher` handler)
             $result = app(RedeemCashVoucher::class)->run($voucher, $mobile);
+            Log::info("🛠 Running RedeemVoucherMiddleware Middleware", compact('message', 'from', 'to'));
 
             // Return a response indicating success
             return response()->json([

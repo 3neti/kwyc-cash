@@ -4,6 +4,7 @@ namespace App\Middleware;
 
 use Closure;
 use App\Models\SMS;
+use Illuminate\Support\Facades\Log;
 
 class StoreSMS implements SMSMiddlewareInterface
 {
@@ -14,6 +15,7 @@ class StoreSMS implements SMSMiddlewareInterface
             'to' => $to,
             'message' => $message,
         ]);
+        Log::info("🛠 Running StoreSMS Middleware", compact('message', 'from', 'to'));
 
         return $next($message, $from, $to);
     }

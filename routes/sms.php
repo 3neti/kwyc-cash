@@ -15,16 +15,18 @@ Log::info("✅  Resolved SMSRouterService instance.", ['instance' => get_class($
 $router->register(
     '{message}',
     function ($values, $from, $to) {
+        Log::info("📩 SMS Route Matched", ['message' => $values['message'], 'from' => $from, 'to' => $to]);
+
         return response()->json([
             'message' => "Received message: " . strtoupper($values['message']),
         ]);
     },
     [
-        RateLimitSMS::class,     // Prevent spam
-        CleanSMS::class,  // Normalize message
+//        RateLimitSMS::class,     // Prevent spam
+//        CleanSMS::class,  // Normalize message
         RedeemVoucherMiddleware::class,  // 🔥 Auto-redeem vouchers if detected
         AutoReplySMS::class,     // Auto-reply for predefined messages
-        LogSMS::class,   // Log SMS
-        StoreSMS::class,  // Save SMS to DB
+//        LogSMS::class,   // Log SMS
+//        StoreSMS::class,  // Save SMS to DB
     ]
 );
