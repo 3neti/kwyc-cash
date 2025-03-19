@@ -22,6 +22,6 @@ class PersistSMS implements ShouldQueue
      */
     public function handle(SMSArrived $event): void
     {
-        $sms = SMS::createFromSMSData($event->SMSData);
+//        $sms = SMS::createFromSMSData($event->SMSData);
     }
 }

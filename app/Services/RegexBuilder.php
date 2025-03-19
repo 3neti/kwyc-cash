@@ -3,123 +3,96 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
-use RuntimeException;
 
 class RegexBuilder
 {
     protected array $options;
-    protected array $tokens = [];
-
-    const CAPTURE_LEFT = 1;
-    const CAPTURE_RIGHT = 2;
-    const ALLOW_OPT_TRAIL = 4;
-
-    const START_SYMBOL = 0;
-    const END_SYMBOL = 1;
-    const SEPARATOR_SYMBOL = 2;
-    const OPT_SYMBOL = 3;
-    const CAPTURE_MODE = 4;
-    const REGEX_DELIMITER = 5;
-    const REGEX_MODIFIER = 6;
-    const DEFAULT_REGEX_EXP = 7;
-    const ASSIGN_SYMBOL = 8;
 
     public function __construct(array $options = [])
     {
         $options += [
-            self::START_SYMBOL => '{',
-            self::END_SYMBOL => '}',
-            self::SEPARATOR_SYMBOL => ' ', // Space for SMS commands
-            self::OPT_SYMBOL => '?',
-            self::CAPTURE_MODE => self::CAPTURE_LEFT | self::ALLOW_OPT_TRAIL,
-            self::REGEX_DELIMITER => '/',
-            self::REGEX_MODIFIER => 'i', // Case-insensitive
-            self::ASSIGN_SYMBOL => '=',
+            'START_SYMBOL' => '{',
+            'END_SYMBOL' => '}',
+            'SEPARATOR_SYMBOL' => ' ', // Space separator for SMS commands
+            'OPT_SYMBOL' => '?',
+            'REGEX_DELIMITER' => '/',
+            'REGEX_MODIFIER' => 'i', // Case-insensitive for SMS
+            'DEFAULT_REGEX_EXP' => '[^\s]+', // Default: Capture one word
         ];
-
-        if (!isset($options[self::DEFAULT_REGEX_EXP])) {
-            $options[self::DEFAULT_REGEX_EXP] = '[^\s]+'; // Default: Capture one word
-        }
 
         $this->options = $options;
     }
 
+    /**
+     * Convert an SMS pattern into a regex.
+     *
+     * @param string $pattern The pattern string.
+     * @return string The converted regex.
+     */
     public function getRegex(string $pattern): string
     {
-        Log::debug("Converting pattern to regex", ['pattern' => $pattern]);
-
         $regex = [];
         $tokens = $this->getTokens($pattern);
-        $delimiter = $this->options[self::REGEX_DELIMITER];
-        $modifier = $this->options[self::REGEX_MODIFIER];
-        $default_exp = $this->options[self::DEFAULT_REGEX_EXP];
+        $delimiter = $this->options['REGEX_DELIMITER'];
+        $modifier = $this->options['REGEX_MODIFIER'];
 
-        $sep = preg_quote($this->options[self::SEPARATOR_SYMBOL], $delimiter);
+        $sep = '\s+'; // Explicit space separator
 
         foreach ($tokens as $t) {
             switch ($t['type']) {
                 case 'separator':
                     $regex[] = $sep;
                     break;
+
                 case 'variable':
-                    $pattern = '(?P<' . $t['value'] . '>' . ($t['regex'] ?? ($t['value'] === 'message' ? '.*' : $default_exp)) . ')';
+                    $varName = $t['value'];
+                    $pattern = ($varName === 'message') ? '.+' : '[A-Za-z0-9]+';
+
                     if ($t['opt']) {
-                        $pattern .= '?';
+                        $regex[] = '(?:' . $sep . '(?P<' . $varName . '>' . $pattern . '))?';
+                    } else {
+                        $regex[] = '(?P<' . $varName . '>' . $pattern . ')';
                     }
-                    $regex[] = $pattern;
                     break;
+
                 default:
                     $regex[] = preg_quote($t['value'], $delimiter);
                     break;
             }
         }
 
-        $finalRegex = $delimiter . '^' . implode('', $regex) . '$' . $delimiter . $modifier;
-        Log::debug("Generated regex", ['regex' => $finalRegex]);
-
-        return $finalRegex;
+        return $delimiter . '^' . implode('', $regex) . '$' . $delimiter . $modifier;
     }
 
+    /**
+     * Extract named values from a matched regex pattern.
+     *
+     * @param string $regex The regex pattern.
+     * @param string $message The message string.
+     * @return array The extracted values.
+     */
     public function getValues(string $regex, string $message): array
     {
         if (preg_match($regex, $message, $matches)) {
-            Log::info("Message matched regex", ['message' => $message, 'matches' => $matches]);
-
-            return array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+            return array_map(fn($v) => $v === '' ? null : $v, array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY));
         }
 
-        Log::warning("No match found for message", ['message' => $message, 'regex' => $regex]);
         return [];
     }
 
-    public function matches(string $regex, string $message): bool
-    {
-        return (bool) preg_match($regex, $message);
-    }
-
+    /**
+     * Extract tokens from a pattern.
+     *
+     * @param string $pattern The pattern string.
+     * @return array The extracted tokens.
+     */
     protected function getTokens(string $pattern): array
     {
         preg_match_all('/\{(\w+)\??\}/', $pattern, $matches, PREG_OFFSET_CAPTURE);
-
         $tokens = [];
-        $lastIndex = 0;
 
         foreach ($matches[0] as $index => $match) {
-            if ($match[1] > $lastIndex) {
-                $tokens[] = ['type' => 'data', 'value' => substr($pattern, $lastIndex, $match[1] - $lastIndex)];
-            }
-
-            $tokens[] = [
-                'type' => 'variable',
-                'value' => $matches[1][$index][0],
-                'opt' => substr($match[0], -1) === '?'
-            ];
-
-            $lastIndex = $match[1] + strlen($match[0]);
-        }
-
-        if ($lastIndex < strlen($pattern)) {
-            $tokens[] = ['type' => 'data', 'value' => substr($pattern, $lastIndex)];
+            $tokens[] = ['type' => 'variable', 'value' => $matches[1][$index][0], 'opt' => substr($match[0], -1) === '?'];
         }
 
         return $tokens;
