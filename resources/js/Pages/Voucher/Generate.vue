@@ -31,6 +31,7 @@ const props = defineProps({
 const form = useForm({
     value: props.defaultVoucherValue,
     qty: 1,
+    duration: 'PT12H',
     tag: '',
 });
 
@@ -244,6 +245,19 @@ watch(
                                     placeholder="Enter quantity of vouchers"
                                 />
                                 <InputError class="mt-2" :message="form.errors.qty" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="duration" value="Duration" />
+                                <TextInput
+                                    id="duration"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    v-model="form.duration"
+                                    required
+                                    placeholder="Enter an optional tag"
+                                />
+                                <InputError class="mt-2" :message="form.errors.duration" />
                             </div>
 
                             <div>

@@ -68,6 +68,7 @@ class VoucherController extends Controller
             return [
                 'code' => $voucher->code,
                 'value' => $voucher->getEntities(Cash::class)->first()?->value->getAmount()->toFloat(),
+                'expires_at' => $voucher->expires_at,
                 'tag' => $voucher->getEntities(Cash::class)->first()?->tag,
             ];
         })->toArray();
