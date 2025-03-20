@@ -10,6 +10,7 @@ use Illuminate\Support\Arr;
 class SMSRedeem implements SMSHandlerInterface
 {
     /**
+     * @deprecated
      * Handle SMS message logging as an invokable class.
      */
     public function __invoke(array $values, string $from, string $to): JsonResponse
@@ -17,7 +18,7 @@ class SMSRedeem implements SMSHandlerInterface
         $action = app(RedeemCashVoucher::class);
         $mobile = Arr::get($values, 'mobile', $from);
 
-        $redeemed = $action->run($values['voucher'], $mobile);
+        $redeemed = $action->run(voucher_code: $values['voucher'], mobile: $mobile);
 
         return response()->json([
             'message' => ($redeemed ? "Redeemed: " : "Not Redeemed: ") .  $values['voucher'],

@@ -37,6 +37,7 @@ return [
         'success' => [
             'redirect_timeout' => env('RIDER_REDIRECT_TIMEOUT', 5000)
         ],
+        'auto_feedback' => (bool) env('REDEEM_AUTO_FEEDBACK', true)
     ],
     'campaign' => [
         'name' => env('CAMPAIGN_NAME', 'Default'),

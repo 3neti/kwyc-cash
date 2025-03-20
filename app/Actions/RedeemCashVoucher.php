@@ -11,7 +11,7 @@ use FrittenKeeZ\Vouchers\Facades\Vouchers;
 use Lorisleiva\Actions\Concerns\AsAction;
 use App\Exceptions\VoucherSecretMismatch;
 use FrittenKeeZ\Vouchers\Models\Voucher;
-use App\Models\{Cash, Contact};
+use App\Models\{Cash, Contact, User};
 
 class RedeemCashVoucher
 {
@@ -51,7 +51,7 @@ class RedeemCashVoucher
         try {
             $normalizedMobile = $this->normalizeMobileNumber($mobile, $country);
             $contact = $this->getOrCreateContact($normalizedMobile, $country);
-            $feedbackItems = $this->validateFeedback($feedback);
+            $feedbackItems = array_merge($this->validateFeedback($feedback), $this->getAutoFeedback($voucher_code));
 
             // 🔴 Do not catch `VoucherSecretMismatch` here!
             $this->checkSecret($voucher_code, $normalizedMobile);
@@ -279,5 +279,22 @@ class RedeemCashVoucher
         if ($cash instanceof Cash && isset($cash->secret) && !Hash::check($normalizedMobile, $cash->secret)) {
             throw new VoucherSecretMismatch;
         }
+    }
+
+    private function getAutoFeedback(Voucher|string $voucher): array
+    {
+        $voucher = $voucher instanceof Voucher ? $voucher : Voucher::where('code', $voucher)->first();
+        $user = $voucher->owner;
+
+        if (config('kwyc-cash.redeem.auto_feedback')) {
+            return $user instanceof User
+                ? [
+                    $user->mobile
+                ]
+                : [];
+        }
+
+        return [];
+
     }
 }
