@@ -14,7 +14,7 @@ $router = resolve(SMSRouterService::class);
 $router->register('TRANSFER {mobile} {amount}', SMSTransfer::class, [
     AuthorizeSMS::class
 ]);
-$router->register('GENERATE {value} {qty?}', SMSGenerate::class, [
+$router->register('GENERATE {value} {qty?} {duration?} {tag?}', SMSGenerate::class, [
     AuthorizeSMS::class
 ]);//TODO: add tag
 

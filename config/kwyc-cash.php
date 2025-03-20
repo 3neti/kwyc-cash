@@ -27,7 +27,8 @@ return [
         'value' => env('VOUCHER_VALUE', 50),
         'minimum' => env('VOUCHER_MINIMUM', 50),
         'increment' => env('VOUCHER_INCREMENT', 50),
-        'tariff' => env('VOUCHER_TARIFF', 50)
+        'tariff' => env('VOUCHER_TARIFF', 50),
+        'duration' => env('VOUCHER_DURATION', 'PT12H')
     ],
     'redeem' => [
         'reference' => [

@@ -28,6 +28,9 @@ class SMSGenerate implements SMSHandlerInterface
         // Ensure 'qty' is set with a default value of 1 if not provided.
         $values['qty'] = $values['qty'] ?? 1;
 
+        // Ensure 'tag' is set with a default value of '' if not provided.
+        $values['tag'] = $values['tag'] ?? '';
+
         // Instantiate the action class responsible for generating cash vouchers.
         $action = app(GenerateCashVouchers::class);
 
@@ -37,7 +40,7 @@ class SMSGenerate implements SMSHandlerInterface
         // Find the user associated with the sender's mobile number.
         if ($origin = User::where('mobile', $from)->first()) {
             // Generate vouchers and extract their codes.
-            $vouchers = $action->run($origin, array_merge($validated, ['tag' => '']));
+            $vouchers = $action->run($origin, $validated);
 
             $voucherCodes = $vouchers
                 ->map(fn (Voucher $voucher) => $voucher->code)
@@ -47,6 +50,8 @@ class SMSGenerate implements SMSHandlerInterface
             $data = [
                 'codes'  => $voucherCodes,
                 'amount' => $values['value'],
+                'duration' => $values['duration'],
+                'tag' => $values['tag'],
             ];
 
             // Format the auto-reply message.
