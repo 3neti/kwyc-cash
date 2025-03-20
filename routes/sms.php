@@ -1,6 +1,6 @@
 <?php
 
-use App\Middleware\{AutoReplySMS, CleanSMS, LogSMS, RateLimitSMS, StoreSMS, RedeemVoucherMiddleware};
+use App\Middleware\{AuthorizeSMS, AutoReplySMS, CleanSMS, LogSMS, RateLimitSMS, StoreSMS, RedeemVoucherMiddleware};
 use App\Handlers\{SMSGenerate, SMSTransfer};
 use Illuminate\Support\Facades\Log;
 use App\Services\SMSRouterService;
@@ -11,8 +11,12 @@ Log::info('📌 SMS Routes Loaded');
 $router = resolve(SMSRouterService::class);
 //Log::info("✅  Resolved SMSRouterService instance.", ['instance' => get_class($router)]);
 
-$router->register('TRANSFER {mobile} {amount}', SMSTransfer::class);
-$router->register('GENERATE {value} {qty?}', SMSGenerate::class);//TODO: add tag
+$router->register('TRANSFER {mobile} {amount}', SMSTransfer::class, [
+    AuthorizeSMS::class
+]);
+$router->register('GENERATE {value} {qty?}', SMSGenerate::class, [
+    AuthorizeSMS::class
+]);//TODO: add tag
 
 $router->register(
     '{message}',

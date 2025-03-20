@@ -61,4 +61,10 @@ return [
             'pages' => env('VOUCHERS_PAGES', 10)
         ]
     ],
+    'sms' => [
+        'allowed' => [
+            'transfer' => array_filter(explode(',', env('SMS_ALLOWED_TRANSFER', ''))),
+            'generate' => array_filter(explode(',', env('SMS_ALLOWED_GENERATE', ''))),
+        ],
+    ],
 ];
