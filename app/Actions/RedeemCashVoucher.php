@@ -284,14 +284,17 @@ class RedeemCashVoucher
     private function getAutoFeedback(Voucher|string $voucher): array
     {
         $voucher = $voucher instanceof Voucher ? $voucher : Voucher::where('code', $voucher)->first();
+        $contact = $voucher->getEntities(Contact::class)->first();
         $user = $voucher->owner;
 
-        if (config('kwyc-cash.redeem.auto_feedback')) {
-            return $user instanceof User
-                ? [
-                    $user->mobile
-                ]
-                : [];
+        if ($contact instanceof Contact) {
+            if (config('kwyc-cash.redeem.auto_feedback')) {
+                return $user instanceof User
+                    ? [
+                        $user->mobile
+                    ]
+                    : [];
+            }
         }
 
         return [];
