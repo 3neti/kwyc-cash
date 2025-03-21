@@ -5,6 +5,7 @@ namespace App\Middleware;
 use FrittenKeeZ\Vouchers\Facades\Vouchers;
 use Illuminate\Support\Facades\Log;
 use App\Actions\RedeemCashVoucher;
+use App\Facades\Quote;
 use Closure;
 
 class RedeemVoucherMiddleware implements SMSMiddlewareInterface
@@ -27,13 +28,16 @@ class RedeemVoucherMiddleware implements SMSMiddlewareInterface
             $result = app(RedeemCashVoucher::class)->run($voucher, $mobile);
             Log::info("🛠 Running RedeemVoucherMiddleware Middleware", compact('message', 'from', 'to'));
 
-            // Return a response indicating success
-            return response()->json([
-                'message' => "Voucher successfully redeemed!",
-                'voucher' => $voucher,
-                'mobile' => $mobile,
-                'result' => $result,
-            ]);
+
+            return Quote::get();
+//
+//            // Return a response indicating success
+//            return response()->json([
+//                'message' => "Voucher successfully redeemed!",
+//                'voucher' => $voucher,
+//                'mobile' => $mobile,
+//                'result' => $result,
+//            ]);
         }
         Log::info("❌ No valid voucher found, continuing to other routes.");
 
