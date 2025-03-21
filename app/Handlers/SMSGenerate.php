@@ -29,6 +29,9 @@ class SMSGenerate implements SMSHandlerInterface
         $values['qty'] = $values['qty'] ?? 1;
 
         // Ensure 'tag' is set with a default value of '' if not provided.
+        $values['duration'] = $values['PT12H'] ?? '';
+
+        // Ensure 'tag' is set with a default value of '' if not provided.
         $values['tag'] = $values['tag'] ?? '';
 
         // Instantiate the action class responsible for generating cash vouchers.
