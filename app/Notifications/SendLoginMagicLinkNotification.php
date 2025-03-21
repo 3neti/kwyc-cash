@@ -29,6 +29,8 @@ class SendLoginMagicLinkNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
+        if ($mobile = $notifiable?->mobile;
+
         if ($notifiable instanceof User) {
             $action = new LoginAction($notifiable);
             $action->response(redirect('/dashboard'));
@@ -37,7 +39,7 @@ class SendLoginMagicLinkNotification extends Notification implements ShouldQueue
 
         return (new MailMessage)
             ->line('You may login.')
-            ->action('Click here', url($urlToDashBoard))
+            ->action('Click here', url($this->url))
             ->line('Thank you for using our application!');
     }
 
