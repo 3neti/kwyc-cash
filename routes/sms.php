@@ -11,12 +11,8 @@ Log::info('📌 SMS Routes Loaded');
 $router = resolve(SMSRouterService::class);
 //Log::info("✅  Resolved SMSRouterService instance.", ['instance' => get_class($router)]);
 
-$router->register('TRANSFER {mobile} {amount}', SMSTransfer::class, [
-    AuthorizeSMS::class
-]);
-$router->register('GENERATE {value} {qty?} {duration?} {tag?}', SMSGenerate::class, [
-    AuthorizeSMS::class
-]);//TODO: add tag
+$router->register('TRANSFER {mobile} {amount}', SMSTransfer::class);
+$router->register('GENERATE {value} {qty?} {duration?} {tag?}', SMSGenerate::class);//TODO: add tag
 
 $router->register(
     '{message}',
