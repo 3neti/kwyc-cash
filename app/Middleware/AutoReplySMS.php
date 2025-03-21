@@ -32,10 +32,10 @@ class AutoReplySMS implements SMSMiddlewareInterface
                 if (!is_null($reply)) { // ✅ Only send auto-reply if it's not null
                     Log::info("AutoReply Sent", compact('from', 'to', 'reply'));
 
-                    Notification::route('engage_spark', $from)
-                        ->notify(new SMSAutoReply($reply));
+//                    Notification::route('engage_spark', $from)
+//                        ->notify(new SMSAutoReply($reply));
 
-                    return response()->json(['message' => "AutoReply: " . $reply]); // 🔥 Early Exit
+                    return response()->json(['message' => $reply]); // 🔥 Early Exit
                 }
             }
         }
