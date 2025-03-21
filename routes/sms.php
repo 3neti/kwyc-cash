@@ -20,14 +20,14 @@ $router->register(
         Log::info("📩 SMS Route Matched", ['message' => $values['message'], 'from' => $from, 'to' => $to]);
 
         return response()->json([
-            'message' => "Received message: " . strtoupper($values['message']),
+            'message' => null
         ]);
     },
     [
         RateLimitSMS::class,     // Prevent spam
         CleanSMS::class,  // Normalize message
-        RedeemVoucherMiddleware::class,  // 🔥 Auto-redeem vouchers if detected
         AutoReplySMS::class,     // Auto-reply for predefined messages
+        RedeemVoucherMiddleware::class,  // 🔥 Auto-redeem vouchers if detected
 //        LogSMS::class,   // Log SMS
 //        StoreSMS::class,  // Save SMS to DB
     ]
