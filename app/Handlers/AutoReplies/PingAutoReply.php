@@ -13,12 +13,14 @@ class PingAutoReply implements AutoReplyInterface
         $memoryUsage = $this->getMemoryUsage();
         $timestamp = now()->format('Y-m-d H:i:s');
 
-        return "✅ PONG!
-📌 Machine is running.
-⏳ Uptime: {$uptime}
-💾 Memory Usage: {$memoryUsage}
-📊 Load Average: {$loadAverage}
-🕒 Timestamp: {$timestamp}";
+        return "PONG!";
+
+//        return "✅ PONG!
+//📌 Machine is running.
+//⏳ Uptime: {$uptime}
+//💾 Memory Usage: {$memoryUsage}
+//📊 Load Average: {$loadAverage}
+//🕒 Timestamp: {$timestamp}";
     }
 
     /**
