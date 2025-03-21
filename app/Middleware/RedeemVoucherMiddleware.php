@@ -28,16 +28,10 @@ class RedeemVoucherMiddleware implements SMSMiddlewareInterface
             $result = app(RedeemCashVoucher::class)->run($voucher, $mobile);
             Log::info("🛠 Running RedeemVoucherMiddleware Middleware", compact('message', 'from', 'to'));
 
-
-            return Quote::get();
-//
-//            // Return a response indicating success
-//            return response()->json([
-//                'message' => "Voucher successfully redeemed!",
-//                'voucher' => $voucher,
-//                'mobile' => $mobile,
-//                'result' => $result,
-//            ]);
+            // Return a response indicating success
+            return response()->json([
+                'message' => Quote::get(),
+            ]);
         }
         Log::info("❌ No valid voucher found, continuing to other routes.");
 
