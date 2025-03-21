@@ -14,7 +14,7 @@ class PingAutoReply implements AutoReplyInterface
         $timestamp = now()->format('Y-m-d H:i:s');
 
 
-        return "PONG! Machine is running.\nUptime: {$uptime}\nMemory Usage: {$memoryUsage}\nLoad Average: {$loadAverage}\nTimestamp: {$timestamp}";
+        return "PONG! Uptime: {$uptime} Memory Usage: {$memoryUsage} Load Average: {$loadAverage} Timestamp: {$timestamp}";
 
 //        return "✅ PONG!
 //📌 Machine is running.
