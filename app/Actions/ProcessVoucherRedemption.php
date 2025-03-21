@@ -23,12 +23,12 @@ class ProcessVoucherRedemption
             Log::info("Processing voucher redemption for Voucher Code: {$voucher->code}");
 
             // Disburse the amount and notify feedback in a sequence
-//            DisburseAmount::run($voucher) && SendFeedback::run($voucher) && SendReply::run($voucher);
+            DisburseAmount::run($voucher) && SendFeedback::run($voucher);
 
-            if (DisburseAmount::run($voucher)) {
-                SendFeedback::run($voucher);
-                SendReply::run($voucher);
-            }
+//            if (DisburseAmount::run($voucher)) {
+//                SendFeedback::run($voucher);
+//                SendReply::run($voucher);
+//            }
 
             Log::info("Successfully processed voucher redemption for Voucher Code: {$voucher->code}");
 
