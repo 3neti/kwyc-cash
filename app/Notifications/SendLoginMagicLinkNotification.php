@@ -7,9 +7,6 @@ use LBHurtado\EngageSpark\EngageSparkMessage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Bus\Queueable;
-use App\Models\User;
-use MagicLink\Actions\LoginAction;
-use MagicLink\MagicLink;
 
 class SendLoginMagicLinkNotification extends Notification implements ShouldQueue
 {
@@ -29,14 +26,6 @@ class SendLoginMagicLinkNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        if ($mobile = $notifiable?->mobile;
-
-        if ($notifiable instanceof User) {
-            $action = new LoginAction($notifiable);
-            $action->response(redirect('/dashboard'));
-            $urlToDashBoard = MagicLink::create($action)->url;
-        }
-
         return (new MailMessage)
             ->line('You may login.')
             ->action('Click here', url($this->url))
