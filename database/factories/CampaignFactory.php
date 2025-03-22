@@ -18,7 +18,8 @@ class CampaignFactory extends Factory
     {
         return [
             'inputs' => $this->faker->rgbColorAsArray(),
-            'rider' => $this->faker->url()
+            'rider' => $this->faker->url(),
+            'reference_label' => $this->faker->word(),
         ];
     }
 }

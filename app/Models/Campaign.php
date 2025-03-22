@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasMetaAttributes;
 
 /**
  * Class Campaign.
@@ -19,12 +20,14 @@ use Illuminate\Database\Eloquent\Model;
  * @property string      $rider
  * @property string      $url
  * @property bool        $disabled
+ * @property string      $reference_label
  *
  * @method int getKey()
  */
 class Campaign extends Model
 {
     /** @use HasFactory<\Database\Factories\CampaignFactory> */
+    use HasMetaAttributes;
     use HasFactory;
     use HasUuids;
 

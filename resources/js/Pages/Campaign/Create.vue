@@ -28,7 +28,7 @@ const form = ref({
     voucher_code: '',
     mobile: '',
     country: 'PH',
-    referenceLabel: '',
+    referenceLabel: campaign.reference_label,
     inputs: JSON.stringify(campaign.inputs ?? {}), // Ensure valid JSON string
     feedback: campaign.feedback ?? '',
     rider: campaign.rider ?? '',
@@ -175,6 +175,7 @@ watch(form, async (newForm) => {
             inputs: newForm.inputs,
             feedback: newForm.feedback,
             rider: newForm.rider,
+            reference_label: newForm.referenceLabel
         }
     });
 
@@ -183,6 +184,7 @@ watch(form, async (newForm) => {
             inputs: newForm.inputs,  // JSON string
             feedback: newForm.feedback,
             rider: newForm.rider,
+            reference_label: newForm.referenceLabel
         });
 
         console.log('Campaign update successful', {
@@ -342,7 +344,7 @@ watch (
                                 />
                                 <InputError class="mt-2" :message="!isJsonValid ? 'Invalid JSON format' : ''" />
                             </div>
-                            <!-- Rider Label Field -->
+                            <!-- Rider Field -->
                             <div>
                                 <InputLabel for="rider" value="Rider URL" />
                                 <TextInput
@@ -359,7 +361,7 @@ watch (
                                     message="Invalid URL format. Please enter a valid URL."
                                 />
                             </div>
-                            <!-- Feedback Label Field -->
+                            <!-- Feedback Field -->
                             <div>
                                 <InputLabel for="feedback" value="Feedback" />
                                 <TextInput
@@ -388,7 +390,7 @@ watch (
                                 />
                                 <InputError class="mt-2" />
                             </div>
-                            <!-- Default Voucher Code Label Field -->
+                            <!-- Default Voucher Code Field -->
                             <div>
                                 <InputLabel for="voucher_code" value="Voucher Code" />
                                 <TextInput
@@ -410,7 +412,7 @@ watch (
                                     placeholder="e.g., 09171234567"
                                 />
                             </div>
-                            <!-- Default Country Label Field -->
+                            <!-- Default Country Field -->
                             <div>
                                 <InputLabel for="country" value="Country Code" />
                                 <TextInput

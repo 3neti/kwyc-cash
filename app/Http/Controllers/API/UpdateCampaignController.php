@@ -17,6 +17,7 @@ class UpdateCampaignController extends Controller
             'inputs' => 'nullable|json',
             'feedback' => 'nullable|string',
             'rider' => 'nullable|url',
+            'reference_label' => 'nullable|string',
         ])->validate();
 
         Log::info('Campaign update request validated', [

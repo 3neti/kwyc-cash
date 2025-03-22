@@ -26,6 +26,7 @@ test('campaign has attributes', function () {
     $campaign = Campaign::factory()->create();
     expect($campaign->inputs)->toBeArray();
     expect($campaign->rider)->toBeString();
+    expect($campaign->reference_label)->toBeString();
 });
 
 test('campaign has url', function () {

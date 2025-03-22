@@ -23,15 +23,9 @@ class AutoCampaignCheckin
 //            'country' => 'US',
             'inputs' => json_encode($campaign->inputs),
             'rider' => $campaign->rider,
-            'referenceLabel' => config('kwyc-cash.redeem.reference.label'),
+            'referenceLabel' => $campaign->reference_label,
         ]);
 
         // TODO: deprecate route('old-redeem.create')
-//        $url = URL::route('old-redeem.create', [
-//            'country' => 'PH',
-//            'inputs' => json_encode($campaign->inputs),
-//            'rider' => $campaign->rider,
-//            'referenceLabel' => config('kwyc-cash.redeem.reference.label')
-//        ]);
     }
 }
