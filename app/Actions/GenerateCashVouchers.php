@@ -3,6 +3,7 @@
 namespace App\Actions;
 
 use Illuminate\Validation\ValidationException;
+use Propaganistas\LaravelPhone\Rules\Phone;
 use FrittenKeeZ\Vouchers\Facades\Vouchers;
 use Lorisleiva\Actions\Concerns\AsAction;
 use App\Events\CashVouchersGenerated;
@@ -90,8 +91,10 @@ class GenerateCashVouchers
             // Retrieve the optional duration from validated input
             $duration = Arr::get($validated, 'duration');
 
+            $metadata = Arr::only($validated, ['feedback', 'dedication']);
+
             // Create a voucher linked to the cash and the user
-            $voucher = $this->createVoucher($cash, $user, $duration);
+            $voucher = $this->createVoucher($cash, $user, $duration, $metadata);
             $collection->add($voucher);
         }
 
@@ -109,6 +112,8 @@ class GenerateCashVouchers
             'value' => ['required', 'numeric', 'min:20'],
             'qty' => ['required', 'int', 'min:1'],
             'duration' => ['nullable', 'string'],
+            'dedication' => ['nullable', 'string'],
+            'feedback' => ['required', (new Phone)->type('mobile')->country('PH')],
             'tag' => ['nullable', 'string', 'min:1'],
         ];
     }
@@ -154,7 +159,7 @@ class GenerateCashVouchers
      * $voucher = $this->createVoucher($cash, $user, 'INVALID'); // Expires in 12 hours (fallback)
      * ```
      */
-    protected function createVoucher(Cash $cash, User $user, ?string $duration = null): mixed
+    protected function createVoucher(Cash $cash, User $user, ?string $duration = null, array $metadata = []): mixed
     {
         $entities = compact('cash');
 
@@ -168,7 +173,8 @@ class GenerateCashVouchers
             $interval = new DateInterval('PT12H'); // Default fallback
         }
 
-        return Vouchers::withEntities(...$entities)
+        return Vouchers::withMetadata($metadata)
+            ->withEntities(...$entities)
             ->withExpireTimeIn($interval)
             ->withOwner($user)
             ->create();

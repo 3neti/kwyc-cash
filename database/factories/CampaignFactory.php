@@ -20,6 +20,7 @@ class CampaignFactory extends Factory
             'inputs' => $this->faker->rgbColorAsArray(),
             'rider' => $this->faker->url(),
             'reference_label' => $this->faker->word(),
+            'dedication' => $this->faker->word(),
         ];
     }
 }

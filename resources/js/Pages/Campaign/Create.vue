@@ -32,6 +32,7 @@ const form = ref({
     inputs: JSON.stringify(campaign.inputs ?? {}), // Ensure valid JSON string
     feedback: campaign.feedback ?? '',
     rider: campaign.rider ?? '',
+    dedication: campaign.dedication ?? '',
 });
 
 // Show optional fields toggle
@@ -175,6 +176,7 @@ watch(form, async (newForm) => {
             inputs: newForm.inputs,
             feedback: newForm.feedback,
             rider: newForm.rider,
+            dedication: newForm.dedication,
             reference_label: newForm.referenceLabel
         }
     });
@@ -184,6 +186,7 @@ watch(form, async (newForm) => {
             inputs: newForm.inputs,  // JSON string
             feedback: newForm.feedback,
             rider: newForm.rider,
+            dedication: newForm.dedication,
             reference_label: newForm.referenceLabel
         });
 
@@ -377,6 +380,18 @@ watch (
                                     class="mt-2"
                                     message="Invalid feedback format. Please enter valid mobile numbers, emails, or URLs."
                                 />
+                            </div>
+                            <!-- Dedication Field -->
+                            <div>
+                                <InputLabel for="dedication" value="Dedication" />
+                                <TextInput
+                                    id="dedication"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    v-model="form.dedication"
+                                    placeholder="Enter dedication"
+                                />
+<!--                                <InputError class="mt-2" :message="form.errors.dedication" />-->
                             </div>
                             <!-- Reference Label Field -->
                             <div>

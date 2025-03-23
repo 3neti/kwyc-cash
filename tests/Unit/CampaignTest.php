@@ -27,6 +27,7 @@ test('campaign has attributes', function () {
     expect($campaign->inputs)->toBeArray();
     expect($campaign->rider)->toBeString();
     expect($campaign->reference_label)->toBeString();
+    expect($campaign->dedication)->toBeString();
 });
 
 test('campaign has url', function () {

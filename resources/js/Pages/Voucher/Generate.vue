@@ -32,6 +32,8 @@ const form = useForm({
     value: props.defaultVoucherValue,
     qty: 1,
     duration: 'PT12H',
+    feedback: null,
+    dedication: null,
     tag: '',
 });
 
@@ -228,7 +230,7 @@ watch(
                                     required
                                     :min="props.minAmount"
                                     :step="props.stepAmount"
-                                    placeholder="Enter voucher value"
+                                    placeholder="Enter voucher value."
                                 />
                                 <InputError class="mt-2" :message="form.errors.value" />
                             </div>
@@ -242,7 +244,7 @@ watch(
                                     v-model="form.qty"
                                     required
                                     min="1"
-                                    placeholder="Enter quantity of vouchers"
+                                    placeholder="Enter quantity of vouchers."
                                 />
                                 <InputError class="mt-2" :message="form.errors.qty" />
                             </div>
@@ -255,9 +257,33 @@ watch(
                                     class="mt-1 block w-full"
                                     v-model="form.duration"
                                     required
-                                    placeholder="Enter an optional tag"
+                                    placeholder="Enter a duration."
                                 />
                                 <InputError class="mt-2" :message="form.errors.duration" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="feedback" value="Feedback" />
+                                <TextInput
+                                    id="tag"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    v-model="form.feedback"
+                                    placeholder="Enter a mobile feedback."
+                                />
+                                <InputError class="mt-2" :message="form.errors.feedback" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="dedication" value="Dedication" />
+                                <TextInput
+                                    id="tag"
+                                    type="text"
+                                    class="mt-1 block w-full"
+                                    v-model="form.dedication"
+                                    placeholder="Enter a dedication."
+                                />
+                                <InputError class="mt-2" :message="form.errors.dedication" />
                             </div>
 
                             <div>
@@ -267,7 +293,7 @@ watch(
                                     type="text"
                                     class="mt-1 block w-full"
                                     v-model="form.tag"
-                                    placeholder="Enter an optional tag"
+                                    placeholder="Enter an optional tag."
                                 />
                                 <InputError class="mt-2" :message="form.errors.tag" />
                             </div>

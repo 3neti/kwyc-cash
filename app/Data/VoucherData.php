@@ -21,6 +21,7 @@ class VoucherData extends Data
      * @param bool $expired Indicates if the voucher has expired.
      * @param string $created_at The date and time when the voucher was created.
      * @param string $starts_at The date and time when the voucher becomes valid.
+     * @param string $redeemed_at The date and time when the voucher was redeemed.
      * @param string $expires_at The date and time when the voucher expires.
      * @param UserData|null $owner THe associated owner data
      * @param CashData $cash The associated cash data (preferred over deprecated $amount).
@@ -36,6 +37,7 @@ class VoucherData extends Data
         public bool $expired,
         public string $created_at,
         public string $starts_at,
+        public string $redeemed_at,
         public string $expires_at,
         public ?UserData $owner,
         public CashData $cash,
@@ -67,6 +69,7 @@ class VoucherData extends Data
             expired: $voucher->isExpired(),
             created_at: $voucher->created_at->format('Y-m-d H:i:s'),
             starts_at: $voucher->starts_at?->format('Y-m-d H:i:s') ?? '',
+            redeemed_at: $voucher->redeemed_at?->format('Y-m-d H:i:s') ?? '',
             expires_at: $voucher->expires_at?->format('Y-m-d H:i:s') ?? '',
             owner: ($owner instanceof User) ? UserData::fromModel($owner) : null,
             cash: CashData::fromModel($cash),

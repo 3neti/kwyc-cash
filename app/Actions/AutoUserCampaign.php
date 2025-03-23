@@ -16,6 +16,7 @@ class AutoUserCampaign
         $campaign->name = config('kwyc-cash.campaign.name');
         $campaign->inputs = json_decode(config('kwyc-cash.campaign.inputs'));
         $campaign->rider = config('kwyc-cash.campaign.rider');
+        $campaign->dedication = config('kwyc-cash.campaign.dedication');
         $campaign->save();
 
         if ($user->currentCampaign == null) {

@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Services\{QuoteService, SMSRouterService};
+use App\Services\{OmniChannelService, QuoteService, SMSRouterService};
 use Illuminate\Support\Facades\{File, Vite};
 use App\Actions\ProcessVoucherRedemption;
 use FrittenKeeZ\Vouchers\Models\Voucher;
@@ -23,6 +23,14 @@ class AppServiceProvider extends ServiceProvider
 
         $this->app->singleton(QuoteService::class, function () {
             return new QuoteService();
+        });
+
+        $this->app->singleton(OmniChannelService::class, function () {
+            return new OmniChannelService(
+                config('kwyc-cash.omni-channel.url'),
+                config('kwyc-cash.omni-channel.access_key'),
+                config('kwyc-cash.omni-channel.service')
+            );
         });
     }
 

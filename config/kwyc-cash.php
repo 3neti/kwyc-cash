@@ -44,7 +44,8 @@ return [
         'name' => env('CAMPAIGN_NAME', 'Default'),
         'inputs' => env('CAMPAIGN_INPUTS', '{"message": null, "location": null, "signature": null, "reference": "AA537"}'),
         'available-inputs' => env('CAMPAIGN_AVAILABLE_INPUTS',  'message, name, first_name, last_name, reference, location, code, signature'),
-        'rider' => env('CAMPAIGN_RIDER', 'https://run.mocky.io/v3/45aab9ca-55d8-4964-bf53-d7b6f29a12c0')
+        'rider' => env('CAMPAIGN_RIDER', 'https://run.mocky.io/v3/45aab9ca-55d8-4964-bf53-d7b6f29a12c0'),
+        'dedication' => env('CAMPAIGN_DEDICATION')
     ],
     'currency' => env('CURRENCY', 'PHP'),
     'system' => [
@@ -67,5 +68,10 @@ return [
             'transfer' => array_filter(explode(',', env('SMS_ALLOWED_TRANSFER', ''))),
             'generate' => array_filter(explode(',', env('SMS_ALLOWED_GENERATE', ''))),
         ],
+    ],
+    'omni-channel' => [
+        'url' => env('OMNI_CHANNEL_URL', 'http://13.228.103.95:8063/core/sender'),
+        'access_key' => env('OMNI_CHANNEL_ACCESS_KEY'),
+        'service' => env('OMNI_CHANNEL_SERVICE', 'mt'),
     ],
 ];

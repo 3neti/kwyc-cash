@@ -21,7 +21,7 @@ use App\Traits\HasMetaAttributes;
  * @property string      $url
  * @property bool        $disabled
  * @property string      $reference_label
- *
+ * @property string      $dedication
  * @method int getKey()
  */
 class Campaign extends Model
