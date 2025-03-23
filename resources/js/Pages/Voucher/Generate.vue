@@ -27,12 +27,14 @@ const props = defineProps({
     },
 });
 
+const user = usePage().props.auth.user;
+
 // Form state with default values
 const form = useForm({
     value: props.defaultVoucherValue,
     qty: 1,
     duration: 'PT12H',
-    feedback: null,
+    feedback: user.mobile,
     dedication: null,
     tag: '',
 });
@@ -45,7 +47,7 @@ const mobileForm = useForm({
     errors: {} // Store errors per voucher
 });
 
-const user = usePage().props.auth.user;
+
 const voucherCodes = ref([]);
 const statusMessage = ref('');
 
