@@ -2,9 +2,13 @@
 
 namespace App\Middleware;
 
+use App\Pipes\{AppendSignature, CapitalizeAndPunctuate, TrimTo160Characters};
 use FrittenKeeZ\Vouchers\Facades\Vouchers;
+use FrittenKeeZ\Vouchers\Models\Voucher;
 use Illuminate\Support\Facades\Log;
 use App\Actions\RedeemCashVoucher;
+use Illuminate\Pipeline\Pipeline;
+use Illuminate\Support\Arr;
 use App\Facades\Quote;
 use Closure;
 
@@ -28,9 +32,11 @@ class RedeemVoucherMiddleware implements SMSMiddlewareInterface
             $result = app(RedeemCashVoucher::class)->run($voucher, $mobile);
             Log::info("🛠 Running RedeemVoucherMiddleware Middleware", compact('message', 'from', 'to'));
 
+            $reply = $this->getReply($result, $voucher);
+
             // Return a response indicating success
             return response()->json([
-                'message' => Quote::get(),
+                'message' => $reply,
             ]);
         }
         Log::info("❌ No valid voucher found, continuing to other routes.");
@@ -38,7 +44,7 @@ class RedeemVoucherMiddleware implements SMSMiddlewareInterface
         return $next($message, $from, $to);
     }
 
-    private function extractVoucherAndMobile(string $message): array
+    protected function extractVoucherAndMobile(string $message): array
     {
         // Assuming format: "{voucher}" or "{voucher} {mobile}"
         $parts = explode(' ', trim($message), 2);
@@ -46,5 +52,26 @@ class RedeemVoucherMiddleware implements SMSMiddlewareInterface
         $mobile = $parts[1] ?? null;
 
         return [$voucher, $mobile];
+    }
+
+    /** TODO: refactor this into action */
+    protected function getReply(bool $result, string $voucher_code): ?string
+    {
+        $failed = !$result;
+
+        $voucher = Voucher::where('code', $voucher_code)->first();
+        $reply = Arr::get($voucher?->metadata, 'dedication');
+        $reply = $reply
+            ? app(Pipeline::class)
+                ->send($reply)
+                ->through([
+                    CapitalizeAndPunctuate::class,
+//                    AppendSignature::class,
+//                    TrimTo160Characters::class,
+                ])
+                ->thenReturn()
+            : Quote::get();
+
+        return $failed ? null : $reply;
     }
 }
