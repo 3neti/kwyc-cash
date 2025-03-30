@@ -65,7 +65,9 @@ class SMSGenerate implements SMSHandlerInterface
                 ->notify(new SMSAutoReply($reply));
 
             // Return the generated voucher data as a JSON response.
-            return response()->json($data);
+            return response()->json([
+                'message' => $reply
+            ]);
         }
 
         // Return an error response if the sender is not recognized.
