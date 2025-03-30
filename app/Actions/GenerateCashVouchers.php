@@ -113,7 +113,7 @@ class GenerateCashVouchers
             'qty' => ['required', 'int', 'min:1'],
             'duration' => ['nullable', 'string'],
             'dedication' => ['nullable', 'string'],
-            'feedback' => ['required', (new Phone)->type('mobile')->country('PH')],
+            'feedback' => ['nullable', (new Phone)->type('mobile')->country('PH')],
             'tag' => ['nullable', 'string', 'min:1'],
         ];
     }
