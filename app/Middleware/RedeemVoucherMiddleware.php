@@ -4,6 +4,7 @@ namespace App\Middleware;
 
 use App\Pipes\{AppendSignature, CapitalizeAndPunctuate, TrimTo160Characters};
 use FrittenKeeZ\Vouchers\Facades\Vouchers;
+use App\Exceptions\VoucherSecretMismatch;
 use FrittenKeeZ\Vouchers\Models\Voucher;
 use Illuminate\Support\Facades\Log;
 use App\Actions\RedeemCashVoucher;
@@ -29,15 +30,34 @@ class RedeemVoucherMiddleware implements SMSMiddlewareInterface
             Log::info("✅ Voucher detected and redeemable", compact('voucher', 'mobile'));
 
             // Handle redemption (execute `RedeemCashVoucher` handler)
-            $result = app(RedeemCashVoucher::class)->run($voucher, $mobile);
-            Log::info("🛠 Running RedeemVoucherMiddleware Middleware", compact('message', 'from', 'to'));
+            try {
+                $result = app(RedeemCashVoucher::class)->run($voucher, $mobile);
+                Log::info("🛠 Voucher redeemed successfully", compact('voucher', 'mobile'));
 
-            $reply = $this->getReply($result, $voucher);
+                $reply = $this->getReply($result, $voucher);
 
-            // Return a response indicating success
-            return response()->json([
-                'message' => $reply,
-            ]);
+                return response()->json([
+                    'message' => $reply,
+                ]);
+            } catch (VoucherSecretMismatch $e) {
+                Log::warning("⚠️ Voucher redemption failed", [
+                    'voucher' => $voucher,
+                    'mobile' => $mobile,
+                    'exception' => $e->getMessage(),
+                ]);
+
+                return response()->json([
+                    'message' => null,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning("⚠️ Voucher redemption failed", [
+                    'voucher' => $voucher,
+                    'mobile' => $mobile,
+                    'exception' => $e->getMessage(),
+                ]);
+
+                throw $e; // 👈 rethrow the exception
+            }
         }
         Log::info("❌ No valid voucher found, continuing to other routes.");
 
