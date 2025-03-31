@@ -129,15 +129,33 @@ class SMSRouterService
      */
     protected function convertPatternToRegex(string $pattern): string
     {
-        // Convert required parameters: {voucher} → (?P<voucher>\S+)
+        // 31 Mar 2023
         $pattern = preg_replace_callback('/\{(\w+)\}/', function ($matches) {
-            return ($matches[1] === 'message')
-                ? '(?P<message>.+)'  // Capture full message with spaces
-                : '(?P<' . $matches[1] . '>\S+)'; // Default to single-word values
+            $var = $matches[1];
+            return ($var === 'message' || $var === 'extra')
+                ? '(?P<' . $var . '>.+)' // ✅ capture multi-word trailing values
+                : '(?P<' . $var . '>\S+)';
         }, $pattern);
 
-        // Convert optional parameters: {mobile?} → (?:\s+(?P<mobile>\S+))?
-        $pattern = preg_replace('/\s*\{(\w+)\?\}/', '(?:\s+(?P<$1>\S+))?', $pattern);
+        // Handle optional parameters (including `extra?`) — fix for `extra?`
+        $pattern = preg_replace_callback('/\s*\{(\w+)\?\}/', function ($matches) {
+            $var = $matches[1];
+            if ($var === 'extra') {
+                // Match a leading space followed by a greedy capture
+                return '(?:\s+(?P<extra>.+))?';
+            }
+            return '(?:\s+(?P<' . $var . '>\S+))?';
+        }, $pattern);
+
+//        // Convert required parameters: {voucher} → (?P<voucher>\S+)
+//        $pattern = preg_replace_callback('/\{(\w+)\}/', function ($matches) {
+//            return ($matches[1] === 'message')
+//                ? '(?P<message>.+)'  // Capture full message with spaces
+//                : '(?P<' . $matches[1] . '>\S+)'; // Default to single-word values
+//        }, $pattern);
+//
+//        // Convert optional parameters: {mobile?} → (?:\s+(?P<mobile>\S+))?
+//        $pattern = preg_replace('/\s*\{(\w+)\?\}/', '(?:\s+(?P<$1>\S+))?', $pattern);
 
         return '/^' . trim($pattern) . '$/i';
     }

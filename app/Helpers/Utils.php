@@ -148,3 +148,58 @@ if (!function_exists('parseOptionsString')) {
         return array_filter($currentOptions);
     }
 }
+
+if (!function_exists('normalize_duration')) {
+    /**
+     * Normalize shorthand duration to valid ISO 8601.
+     *
+     * Examples:
+     * - "2h" => "PT2H"
+     * - "1d30m" => "P1DT30M"
+     * - "45m" => "PT45M"
+     * - null or invalid => "PT12H"
+     *
+     * @param string|null $duration
+     * @return string
+     */
+    function normalize_duration(?string $duration): string
+    {
+        if (!$duration) return 'PT12H';
+
+        $duration = strtoupper($duration);
+
+        // If it's already in ISO format and valid, return it as-is
+        if (str_starts_with($duration, 'P')) {
+            try {
+                new DateInterval($duration);
+                return $duration;
+            } catch (\Exception) {
+                return 'PT12H';
+            }
+        }
+
+        // Parse shorthand like "1d2h30m10s"
+        preg_match_all('/(\d+)([DHMS])/', $duration, $parts, PREG_SET_ORDER);
+
+        $date = '';
+        $time = '';
+
+        foreach ($parts as [$_, $val, $unit]) {
+            if ($unit === 'D') {
+                $date .= "{$val}D";
+            } else {
+                $time .= "{$val}{$unit}";
+            }
+        }
+
+        $normalized = 'P' . $date . ($time ? 'T' . $time : '');
+
+        // Final validation
+        try {
+            new DateInterval($normalized);
+            return $normalized;
+        } catch (\Exception) {
+            return 'PT12H';
+        }
+    }
+}

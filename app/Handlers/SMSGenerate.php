@@ -9,6 +9,7 @@ use App\Contracts\SMSHandlerInterface;
 use App\Actions\GenerateCashVouchers;
 use App\Notifications\SMSAutoReply;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 use App\Models\User;
 
 class SMSGenerate implements SMSHandlerInterface
@@ -25,14 +26,12 @@ class SMSGenerate implements SMSHandlerInterface
      */
     public function __invoke(array $values, string $from, string $to): JsonResponse
     {
-        // Ensure 'qty' is set with a default value of 1 if not provided.
-        $values['qty'] = $values['qty'] ?? 1;
+        // Ensure 'extra' is set with a default value of '' if not provided.
+        $values['extra'] = $values['extra'] ?? '';
 
-        // Ensure 'tag' is set with a default value of '' if not provided.
-        $values['duration'] = $values['PT12H'] ?? '';
-
-        // Ensure 'tag' is set with a default value of '' if not provided.
-        $values['tag'] = $values['tag'] ?? '';
+        // Parse extra field
+        $extraParsed = $this->parseExtra($values['extra']);
+        $values = array_merge($values, $extraParsed);
 
         // Instantiate the action class responsible for generating cash vouchers.
         $action = app(GenerateCashVouchers::class);
@@ -45,20 +44,28 @@ class SMSGenerate implements SMSHandlerInterface
             // Generate vouchers and extract their codes.
             $vouchers = $action->run($origin, $validated);
 
+            $total = $vouchers->count();
             $voucherCodes = $vouchers
+                ->take(10)
                 ->map(fn (Voucher $voucher) => $voucher->code)
                 ->implode(',');
+            $voucherCodes .= $total > 10 ? '…' : '';
 
             // Prepare the response data.
             $data = [
                 'codes'  => $voucherCodes,
                 'amount' => $values['value'],
                 'duration' => $values['duration'],
+                'feedback' => $values['feedback'],
                 'tag' => $values['tag'],
+                'dedication' => $values['dedication'],
             ];
 
             // Format the auto-reply message.
-            $reply = __("Amount: :amount\nCodes: :codes", $data);
+            $reply = collect($data)
+                ->filter() // remove null/empty fields
+                ->map(fn($v, $k) => ucfirst($k) . ': ' . $v)
+                ->implode("\n");
 
             // Send the auto-reply via notification.
             Notification::route('engage_spark', $from)
@@ -74,5 +81,47 @@ class SMSGenerate implements SMSHandlerInterface
         return response()->json([
             'message' => 'Something is wrong',
         ]);
+    }
+
+    /**
+     * Extracts parameters from free-form `extra` SMS input.
+     * Supports: $<amount>, *<qty>, !<duration>, @<feedback>, #<tag>, and the rest as dedication text.
+     */
+    private function parseExtra(string $extra): array
+    {
+        $rawValue = null;
+        $rawQty = null;
+        $rawDuration = null;
+        $rawFeedback = null;
+        $rawTag = null;
+        $rawDedication = [];
+
+        // Split by space
+        $parts = preg_split('/\s+/', $extra);
+
+        foreach ($parts as $part) {
+            if (str_starts_with($part, '$')) {
+                $rawValue = ltrim($part, '$');
+            } elseif (str_starts_with($part, '*')) {
+                $rawQty = ltrim($part, '*');
+            } elseif (str_starts_with($part, '!')) {
+                $rawDuration = ltrim($part, '!');
+            } elseif (str_starts_with($part, '@')) {
+                $rawFeedback = ltrim($part, '@');
+            } elseif (str_starts_with($part, '#')) {
+                $rawTag = ltrim($part, '#');
+            } else {
+                $rawDedication[] = $part;
+            }
+        }
+
+        return [
+            'value' => $rawValue ? max(50, (int) $rawValue) : 50,
+            'qty' => $rawQty ? max(1, (int) $rawQty) : 1,
+            'duration' => Str::normalizeDuration($rawDuration),
+            'feedback' => $rawFeedback && Str::isMobileNumber($rawFeedback) ? Str::formatMobileNumber($rawFeedback) : null,
+            'tag' => $rawTag,
+            'dedication' => implode(' ', $rawDedication),
+        ];
     }
 }
