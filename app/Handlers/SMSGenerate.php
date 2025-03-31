@@ -4,10 +4,8 @@ namespace App\Handlers;
 
 use App\Actions\{AttachVoucherToMobile, GenerateCashVouchers};
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Notification;
 use FrittenKeeZ\Vouchers\Models\Voucher;
 use App\Contracts\SMSHandlerInterface;
-use App\Notifications\SMSAutoReply;
 use Illuminate\Support\{Arr, Str};
 use Illuminate\Http\JsonResponse;
 use App\Models\User;
@@ -96,7 +94,22 @@ class SMSGenerate implements SMSHandlerInterface
 
     /**
      * Extracts parameters from free-form `extra` SMS input.
-     * Supports: $<amount>, *<qty>, !<duration>, @<feedback>, #<tag>, and the rest as dedication text.
+     *
+     * Prefixes supported:
+     *
+     * Symbol          | Purpose                   | Example                        | Parsed As
+     * ----------------|---------------------------|--------------------------------|---------------------
+     * `$` / `₱`       | Voucher value             | ₱200                           | `value = 200`
+     * `*`             | Quantity                  | *5                             | `qty = 5`
+     * `!`             | Expiry duration (ISO 8601)| !PT2H / !2H                    | `duration = PT2H`
+     * `@`             | Feedback recipient        | @09171234567                   | `feedback = mobile`
+     * `#`             | Tag or category           | #ReliefAid                     | `tag = ReliefAid`
+     * `&` / `>` / `:` | Attach vouchers to mobile | &09171234567 / >0917… / :0917… | `mobile = recipient`
+     *
+     * All other segments are considered part of the dedication message.
+     *
+     * @param string $extra The raw input string from the SMS message.
+     * @return array An array of parsed SMS parameters.
      */
     private function parseExtra(string $extra): array
     {
@@ -122,8 +135,12 @@ class SMSGenerate implements SMSHandlerInterface
                 $rawFeedback = ltrim($part, '@');
             } elseif (str_starts_with($part, '#')) {
                 $rawTag = ltrim($part, '#');
-            } elseif (str_starts_with($part, '&')) {
-                $rawMobile = ltrim($part, '&');
+            } elseif (
+                str_starts_with($part, '&') ||
+                str_starts_with($part, '>') ||
+                str_starts_with($part, ':')
+            ) {
+                $rawMobile = ltrim($part, '&>:');
             } else {
                 $rawDedication[] = $part;
             }

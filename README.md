@@ -1,66 +1,92 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 💸 SMS Voucher Command Cheat Sheet
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## 🛠 GENERATION COMMAND
 
-## About Laravel
+```
+GENERATE <modifiers> <dedication text>
+```
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+You can generate one or more cash vouchers via SMS using a mix of **symbol-based modifiers** followed by a **dedication message**.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 📌 Modifiers & Symbols
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Symbol        | Field             | Description                                                                  | Example Input         | Parsed As                     |
+|---------------|------------------|------------------------------------------------------------------------------|------------------------|-------------------------------|
+| `$` / `₱`     | `value`           | Voucher amount in pesos                                                      | `₱100` or `$200`       | `value = 100 / 200`           |
+| `*`           | `qty`             | Number of vouchers to generate                                               | `*3`                   | `qty = 3`                     |
+| `!`           | `duration`        | Voucher validity (ISO 8601 or shorthand)                                     | `!2H` or `!PT12H`       | `duration = PT2H / PT12H`     |
+| `@`           | `feedback`        | Mobile number that will receive the auto-reply (e.g. a beneficiary)          | `@09171234567`         | `feedback = mobile`           |
+| `#`           | `tag`             | Tag the vouchers with a campaign or category label                           | `#ReliefAid`           | `tag = ReliefAid`             |
+| `&` / `>` / `:` | `mobile`        | Attach vouchers directly to a mobile number (for redemption restrictions)    | `>09171234567`         | `mobile = mobile number`      |
+| *(none)*      | `dedication`      | All other words are merged as a dedication or motivational message           | `Para sa barangay`     | `dedication = "Para sa barangay"` |
 
-## Learning Laravel
+## ✅ Example 1: Generate 3 vouchers at ₱200, valid for 2 hours, for mobile 09171234567
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```
+GENERATE ₱200 *3 !2H >09171234567 Para sa barangay hall
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Parsed as:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```json
+{
+  "value": 200,
+  "qty": 3,
+  "duration": "PT2H",
+  "mobile": "09171234567",
+  "dedication": "Para sa barangay hall"
+}
+```
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 💳 REDEMPTION COMMAND
 
-### Premium Partners
+You can redeem a voucher by **sending the voucher code** via SMS.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 🔄 Basic Format:
 
-## Contributing
+```
+<VOUCHER_CODE>
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+✅ If valid:
+- The system will **redeem the voucher** for the sender’s mobile number.
+- A **witty response** or **dedication** will be returned.
 
-## Code of Conduct
+❌ If invalid or already redeemed:
+- **No response** is sent back.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 👤 Specifying a Target Mobile
 
-## Security Vulnerabilities
+```
+<VOUCHER_CODE> <MOBILE>
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+✅ If valid:
+- The voucher is redeemed **for the specified mobile number**.
+- A witty/dedication reply is returned.
 
-## License
+Example:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```
+AB12CD34EF 09175551234
+```
+
+---
+
+## 🧪 SMS Command Summary
+
+| Action       | Command Format                                     | Example                                  |
+|--------------|----------------------------------------------------|------------------------------------------|
+| Generate     | `GENERATE ₱<amount> *<qty> !<duration> @<feedback> #<tag> >/<mobile> <dedication>` | `GENERATE ₱100 *2 !PT2H >0917... Para sa inyo` |
+| Redeem       | `<voucher_code>`                                   | `AB12CD34EF`                              |
+| Redeem for   | `<voucher_code> <mobile>`                          | `AB12CD34EF 09175559999`                  |
+
+---
+
+### ✨ Notes
+
+- **PT2H** means “valid for 2 hours” using ISO 8601 format. You may also use just `2H`.
+- The first 10 voucher codes are included in SMS replies — longer batches are truncated with `…`.
+- Replies are filtered to remove empty fields, and messages are crafted to be short and friendly.
