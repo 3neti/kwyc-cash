@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\{AttachVoucherToMobile, GenerateCashVouchers};
 use Illuminate\Validation\ValidationException;
 use Propaganistas\LaravelPhone\Rules\Phone;
 use Illuminate\Support\Facades\Validator;
 use FrittenKeeZ\Vouchers\Models\Voucher;
 use Spatie\LaravelData\DataCollection;
-use App\Actions\GenerateCashVouchers;
 use App\Actions\ShareCashVoucher;
 use App\Models\{Cash, Contact};
 use Illuminate\Http\Request;
@@ -80,37 +80,17 @@ class VoucherController extends Controller
 
     public function handleVoucherAction(Request $request): \Illuminate\Http\RedirectResponse
     {
-        $request->validate([
-            'mobile' => ['required', (new Phone)->type('mobile')->country('PH')],
-            'voucher_code' => 'required|string',
-            'amount' => 'required|numeric',
-        ]);
+        $input = $request->only(['mobile', 'voucher_code']);
 
-        $mobile = $request->input('mobile');
-        $voucherCode = $request->input('voucher_code');
-        $amount = $request->input('amount');//deprecated
-
-        $voucher = Voucher::where('code', $voucherCode)->first();
-
-        if (!$voucher) {
-            return redirect()->back()
-                ->withErrors(['voucher_code' => 'Invalid voucher code.']);
+        try {
+            $result = AttachVoucherToMobile::run($input);
+        } catch (ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors());
         }
-        $contact = Contact::firstOrCreate(['mobile' => $mobile]);
-        $voucher->addEntities($contact);
-
-        /** Assigns a hashed secret to the `Cash` entity associated with a voucher. */
-        $cash = $voucher->getEntities(Cash::class)->first();
-        $cash->secret = $contact->mobile;
-        $cash->save();
-
-        ShareCashVoucher::dispatch($voucher);
 
         return back()->with('event', [
             'name' => 'contact_attached',
-            'data' => [
-                'voucher_code' => $voucher->code,
-            ],
+            'data' => $result,
         ]);
     }
 }

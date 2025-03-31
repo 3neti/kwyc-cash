@@ -2,14 +2,14 @@
 
 namespace App\Handlers;
 
+use App\Actions\{AttachVoucherToMobile, GenerateCashVouchers};
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Notification;
 use FrittenKeeZ\Vouchers\Models\Voucher;
 use App\Contracts\SMSHandlerInterface;
-use App\Actions\GenerateCashVouchers;
 use App\Notifications\SMSAutoReply;
+use Illuminate\Support\{Arr, Str};
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Str;
 use App\Models\User;
 
 class SMSGenerate implements SMSHandlerInterface
@@ -31,6 +31,10 @@ class SMSGenerate implements SMSHandlerInterface
 
         // Parse extra field
         $extraParsed = $this->parseExtra($values['extra']);
+
+        // Extract mobile if present
+        $mobile_to_attach = Arr::pull($extraParsed, 'mobile');
+
         $values = array_merge($values, $extraParsed);
 
         // Instantiate the action class responsible for generating cash vouchers.
@@ -43,6 +47,16 @@ class SMSGenerate implements SMSHandlerInterface
         if ($origin = User::where('mobile', $from)->first()) {
             // Generate vouchers and extract their codes.
             $vouchers = $action->run($origin, $validated);
+
+            // Attach each generated voucher to the provided mobile (if any)
+            if ($mobile_to_attach) {
+                foreach ($vouchers as $voucher) {
+                    AttachVoucherToMobile::run([
+                        'mobile' => $mobile_to_attach,
+                        'voucher_code' => $voucher->code,
+                    ]);
+                }
+            }
 
             $total = $vouchers->count();
             $voucherCodes = $vouchers
@@ -58,6 +72,7 @@ class SMSGenerate implements SMSHandlerInterface
                 'duration' => $values['duration'],
                 'feedback' => $values['feedback'],
                 'tag' => $values['tag'],
+                'mobile' => $mobile_to_attach,
                 'dedication' => $values['dedication'],
             ];
 
@@ -66,10 +81,6 @@ class SMSGenerate implements SMSHandlerInterface
                 ->filter() // remove null/empty fields
                 ->map(fn($v, $k) => ucfirst($k) . ': ' . $v)
                 ->implode("\n");
-
-            // Send the auto-reply via notification.
-            Notification::route('engage_spark', $from)
-                ->notify(new SMSAutoReply($reply));
 
             // Return the generated voucher data as a JSON response.
             return response()->json([
@@ -95,6 +106,7 @@ class SMSGenerate implements SMSHandlerInterface
         $rawFeedback = null;
         $rawTag = null;
         $rawDedication = [];
+        $rawMobile = null;
 
         // Split by space
         $parts = preg_split('/\s+/', $extra);
@@ -110,6 +122,8 @@ class SMSGenerate implements SMSHandlerInterface
                 $rawFeedback = ltrim($part, '@');
             } elseif (str_starts_with($part, '#')) {
                 $rawTag = ltrim($part, '#');
+            } elseif (str_starts_with($part, '&')) {
+                $rawMobile = ltrim($part, '&');
             } else {
                 $rawDedication[] = $part;
             }
@@ -121,6 +135,7 @@ class SMSGenerate implements SMSHandlerInterface
             'duration' => Str::normalizeDuration($rawDuration),
             'feedback' => $rawFeedback && Str::isMobileNumber($rawFeedback) ? Str::formatMobileNumber($rawFeedback) : null,
             'tag' => $rawTag,
+            'mobile' => $rawMobile && Str::isMobileNumber($rawMobile) ? Str::formatMobileNumber($rawMobile) : null,
             'dedication' => implode(' ', $rawDedication),
         ];
     }
