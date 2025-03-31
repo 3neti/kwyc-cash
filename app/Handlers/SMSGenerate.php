@@ -100,8 +100,8 @@ class SMSGenerate implements SMSHandlerInterface
         $parts = preg_split('/\s+/', $extra);
 
         foreach ($parts as $part) {
-            if (str_starts_with($part, '$')) {
-                $rawValue = ltrim($part, '$');
+            if (str_starts_with($part, '$') || str_starts_with($part, '₱')) {
+                $rawValue = ltrim($part, '$₱');
             } elseif (str_starts_with($part, '*')) {
                 $rawQty = ltrim($part, '*');
             } elseif (str_starts_with($part, '!')) {
