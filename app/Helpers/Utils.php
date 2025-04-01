@@ -10,7 +10,7 @@ use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
 
 if (!function_exists('images_path')) {
-    function images_path(string $path = null): string {
+    function images_path(string|null $path = null): string {
         $images_path = base_path('resources/images');
 
         return $images_path . ($path ? '/' . $path : '');
@@ -18,7 +18,7 @@ if (!function_exists('images_path')) {
 }
 
 if (!function_exists('generateQRCodeURI')) {
-    function generateQRCodeURI (string $data, Logo|string $logo = null, Label|string $label = null):? string
+    function generateQRCodeURI (string $data, Logo|string|null $logo, Label|string|null $label):? string
     {
         $writer = new PngWriter();
 
