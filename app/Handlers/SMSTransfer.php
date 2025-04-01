@@ -10,7 +10,7 @@ use App\Models\User;
 class SMSTransfer implements SMSHandlerInterface
 {
     /**
-     * Handle SMS message logging as an invokable class.
+     * Handle SMS fund transfer as an invokable class.
      */
     public function __invoke(array $values, string $from, string $to): JsonResponse
     {
