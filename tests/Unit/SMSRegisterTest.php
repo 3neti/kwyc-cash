@@ -1,20 +1,18 @@
 <?php
 
-
-use Illuminate\Support\Facades\{Event, Hash};
+use App\Notifications\SendSMSRegistrationNotification;
+use Illuminate\Support\Facades\{Event, Hash, Notification};
 use Illuminate\Http\JsonResponse;
 use App\Events\RegisteredViaSMS;
 use App\Handlers\SMSRegister;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Notification;
 use App\Models\User;
 
 describe('SMSRegister Handler', function () {
 
     beforeEach(function () {
-        Event::fake([RegisteredViaSMS::class]);
-        Notification::fake();
         User::query()->delete();
+        Notification::fake();
     });
 
     it('registers a new user with only mobile', function () {
@@ -36,6 +34,8 @@ describe('SMSRegister Handler', function () {
         expect($user)->not->toBeNull();
         expect($user->email)->toBe($expected);
         expect(Str::lower($user->getRawOriginal('name')))->toBe(Str::lower($expected));
+
+        Notification::assertSentTo($user, SendSMSRegistrationNotification::class);
     });
 
     it('registers with name and password via quoted extras', function () {
@@ -56,6 +56,8 @@ describe('SMSRegister Handler', function () {
         expect($user)->not->toBeNull();
         expect($user->name)->toBe('Juan Dela Cruz');
         expect(Hash::check('Secret123', $user->password))->toBeTrue();
+
+        Notification::assertSentTo($user, SendSMSRegistrationNotification::class);
     });
 
     it('fails and provides syntax message on invalid input', function () {
@@ -116,6 +118,8 @@ describe('SMSRegister Handler', function () {
         expect($user)->not->toBeNull();
         expect($user->name)->toBe('Simulated User');
         expect(Hash::check('Test1234', $user->password))->toBeTrue();
+
+        Notification::assertSentTo($user, SendSMSRegistrationNotification::class);
     });
 
     it('dispatches RegisteredViaSMS event after successful registration', function () {
@@ -134,12 +138,12 @@ describe('SMSRegister Handler', function () {
 
         expect($response)->toBeInstanceOf(JsonResponse::class);
         expect($user)->not->toBeNull();
-        Event::assertDispatched(RegisteredViaSMS::class, function ($event) use ($user) {
-            return $event->user->is($user);
-        });
+
+        Notification::assertSentTo($user, SendSMSRegistrationNotification::class);
     });
 
     it('does not dispatch event when validation fails', function () {
+        Event::fake([RegisteredViaSMS::class]);
         $handler = new SMSRegister();
 
         $response = $handler(
@@ -156,6 +160,7 @@ describe('SMSRegister Handler', function () {
     });
 
     it('handles self-registration properly', function () {
+        Notification::fake();
         $mobile = '09170000000';
         $handler = new SMSRegister();
 
@@ -168,12 +173,11 @@ describe('SMSRegister Handler', function () {
 
         expect($response)->toBeInstanceOf(JsonResponse::class);
         expect($data['message'])->toContain('Registered: Self Register <self@example.com>');
-        Event::assertDispatched(RegisteredViaSMS::class);
-        Notification::assertNothingSent(); // OmniChannel feedback not sent
+        Notification::assertSentTo(User::where('mobile', $mobile)->first(), SendSMSRegistrationNotification::class);
     });
 
     it('handles third-party registration and sends feedback', function () {
-        Notification::fake(); // For SMS feedback assertions
+        Notification::fake();
         $adminMobile = '09178889999';
         $targetMobile = '09179998888';
 
@@ -190,7 +194,7 @@ describe('SMSRegister Handler', function () {
         expect($data['message'])->toContain("Registration complete. We've notified");
         expect(User::where('mobile', $targetMobile)->exists())->toBeTrue();
 
-        Event::assertDispatched(RegisteredViaSMS::class);
-        Notification::assertNothingSent(); // Add custom assertions if OmniChannel is tested differently
+//        Event::assertDispatched(RegisteredViaSMS::class);
+        Notification::assertSentTo(User::where('mobile', $targetMobile)->first(), SendSMSRegistrationNotification::class);
     });
 });

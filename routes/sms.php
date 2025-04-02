@@ -1,7 +1,7 @@
 <?php
 
 use App\Middleware\{AuthorizeSMS, AutoReplySMS, CleanSMS, LogSMS, RateLimitSMS, StoreSMS, RedeemVoucherMiddleware};
-use App\Handlers\{SMSGenerate, SMSRegister, SMSTransfer};
+use App\Handlers\{SMSAutoRegister, SMSGenerate, SMSRegister, SMSTransfer};
 use Illuminate\Support\Facades\Log;
 use App\Services\SMSRouterService;
 
@@ -13,8 +13,8 @@ $router = resolve(SMSRouterService::class);
 
 $router->register('TRANSFER {mobile} {amount}', SMSTransfer::class);
 $router->register('GENERATE {extra?}', SMSGenerate::class);
-$router->register('REGISTER {mobile} {extra?}', SMSRegister::class);
-$router->register('REG {extra?}', SMSRegister::class);
+$router->register('REGISTER {mobile?} {extra?}', SMSRegister::class);
+$router->register('REG {email} {extra?}', SMSAutoRegister::class);
 
 $router->register(
     '{message}',

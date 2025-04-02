@@ -29,6 +29,7 @@
         "spatie/laravel-data": "^4.13",
         "spatie/laravel-model-status": "^1.18",
         "spatie/laravel-schemaless-attributes": "^2.5",
+        "symfony/console": "^7.2",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

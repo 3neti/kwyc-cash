@@ -14,16 +14,22 @@ use Illuminate\Validation\Rules;
 use Illuminate\Validation\Rule;
 use App\Models\User;
 
+use Symfony\Component\Console\Input\InputDefinition;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\StringInput;
+
 class SMSRegister implements SMSHandlerInterface
 {
     /**
      * Handle SMS user registration.
      *
      * Expected syntax:
-     * REGISTER {email} {mobile} [--name|-n "Full Name"] [--password|-p "Secret"]
+     * - Unified format (supports both self and admin registration):
+     *   REGISTER [mobile] [--email|-e <email>] [--name|-n "Full Name"] [--password|-p "Secret"]
      *
-     * Example:
-     * REGISTER john@doe.com 09171234567 -n"Juan Dela Cruz" -p"Secret123"
+     * Examples:
+     *   REGISTER 09171234567 -e"user@example.com" -n"Juan Dela Cruz" -p"Secret123"
+     *   REGISTER -n"Maria" -e"maria@example.com" (self-registers using sender's mobile)
      */
     public function __invoke(array $values, string $from, string $to): JsonResponse
     {
@@ -32,14 +38,17 @@ class SMSRegister implements SMSHandlerInterface
         Log::info('📨 Processing SMS registration', [
             'from' => $from,
             'to' => $to,
-            'email' => $values['email'] ?? null,
-            'mobile' => $values['mobile'] ?? null,
+            'input' => $values,
             'extra' => $extra,
         ]);
 
+        // Parse extras and merge
         $extras = $this->parseExtras($extra);
         Log::debug('📦 Parsed extras from SMS', $extras);
-        $values = array_merge($values, $extras);
+
+        // If mobile is not given in command, fallback to sender's number
+        $mobile = $values['mobile'] ?? $from;
+        $values = array_merge(['mobile' => $mobile], $values, $extras);
 
         $rules = [
             'mobile' => ['required', (new Phone)->type('mobile')->country('PH'), Rule::unique(User::class)],
@@ -96,7 +105,7 @@ class SMSRegister implements SMSHandlerInterface
             report($th);
 
             return response()->json([
-                'message' => "Syntax: REGISTER email mobile [-n\"Full Name\"] [-p\"Password\"]",
+                'message' => "Syntax: REGISTER [mobile] [-e\"Email\"] [-n\"Full Name\"] [-p\"Password\"]",
             ]);
         }
     }
@@ -107,29 +116,35 @@ class SMSRegister implements SMSHandlerInterface
      */
     protected function parseExtras(string $extra): array
     {
-        $results = [
-            'email' => null,
-            'name' => null,
-            'password' => null,
-        ];
+        $definition = new InputDefinition([
+            new InputOption('email', 'e', InputOption::VALUE_REQUIRED),
+            new InputOption('name', 'n', InputOption::VALUE_REQUIRED),
+            new InputOption('password', 'p', InputOption::VALUE_REQUIRED),
+        ]);
 
-        // Match long/short flags with quoted or unquoted values
-        preg_match_all('/(?:--(?P<long>\w+)|-(?P<short>\w))\s*(?:"([^"]+)"|(\S+))/', $extra, $matches, PREG_SET_ORDER);
+        // Fix missing space after short options (e.g., -elbhurtado@example.com)
+        $extra = preg_replace_callback('/-(\w)([^\s"]+)/', function ($m) {
+            return "-{$m[1]} \"{$m[2]}\"";
+        }, $extra);
 
-        foreach ($matches as $match) {
-            $key = $match['long'] ?: $match['short'];
-            $value = $match[3] ?? $match[4];
+        try {
+            $input = new StringInput($extra);
+            $input->bind($definition);
 
-            Log::debug('🔍 Found flag', ['key' => $key, 'value' => $value]);
+            $results = [
+                'email' => $input->getOption('email'),
+                'name' => $input->getOption('name'),
+                'password' => $input->getOption('password'),
+            ];
 
-            match ($key) {
-                'e', 'email' => $results['email'] = trim($value),
-                'n', 'name' => $results['name'] = trim($value),
-                'p', 'password' => $results['password'] = trim($value),
-                default => null,
-            };
+            Log::debug('📦 Parsed extras from SMS', array_filter($results));
+            return array_filter($results);
+        } catch (\Throwable $e) {
+            Log::warning('⚠️ Failed to parse SMS extras', [
+                'extra' => $extra,
+                'exception' => $e->getMessage(),
+            ]);
+            return [];
         }
-
-        return array_filter($results);
     }
 }
