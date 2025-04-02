@@ -20,8 +20,9 @@ class SendRegistrationFeedback
     public function handle(User $user): void
     {
         $message = sprintf(
-            "Hello %s! You've been registered in our system. Please keep this number safe for future logins.",
-            $user->name
+            "Hello %s! You've been registered with email: %s. Please keep this number safe for future logins.",
+            $user->name,
+            $user->email
         );
 
         Log::info('📤 Sending registration feedback SMS', [

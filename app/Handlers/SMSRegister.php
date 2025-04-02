@@ -2,6 +2,7 @@
 
 namespace App\Handlers;
 
+use Symfony\Component\Console\Input\{InputDefinition, InputOption, StringInput};
 use Propaganistas\LaravelPhone\Rules\Phone;
 use App\Actions\SendRegistrationFeedback;
 use Illuminate\Support\Facades\Validator;
@@ -13,10 +14,6 @@ use App\Events\RegisteredViaSMS;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\Rule;
 use App\Models\User;
-
-use Symfony\Component\Console\Input\InputDefinition;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\StringInput;
 
 class SMSRegister implements SMSHandlerInterface
 {
