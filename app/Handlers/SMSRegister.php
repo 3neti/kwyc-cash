@@ -3,11 +3,13 @@
 namespace App\Handlers;
 
 use Propaganistas\LaravelPhone\Rules\Phone;
+use App\Actions\SendRegistrationFeedback;
 use Illuminate\Support\Facades\Validator;
 use App\Contracts\SMSHandlerInterface;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\JsonResponse;
+use App\Events\RegisteredViaSMS;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\Rule;
 use App\Models\User;
@@ -35,7 +37,6 @@ class SMSRegister implements SMSHandlerInterface
             'extra' => $extra,
         ]);
 
-        // Parse extras and merge
         $extras = $this->parseExtras($extra);
         Log::debug('📦 Parsed extras from SMS', $extras);
         $values = array_merge($values, $extras);
@@ -63,14 +64,28 @@ class SMSRegister implements SMSHandlerInterface
                 'password' => Hash::make($password),
             ]);
 
+            RegisteredViaSMS::dispatch($user);
+
             Log::info('✅ User registered successfully', [
                 'id' => $user->id,
                 'email' => $user->email,
                 'mobile' => $user->mobile,
             ]);
 
+            // Determine if this is self-registration or third-party
+            $selfRegistration = $from === $mobile;
+
+            if ($selfRegistration) {
+                return response()->json([
+                    'message' => "Registered: {$user->name} <{$user->email}>"
+                ]);
+            }
+
+            // Notify the registered user via SMS
+            SendRegistrationFeedback::run($user);
+
             return response()->json([
-                'message' => "Registered: {$user->name} <{$user->email}>"
+                'message' => "Registration complete. We've notified {$user->mobile} with their account details."
             ]);
         } catch (\Throwable $th) {
             Log::error('❌ SMS registration failed', [

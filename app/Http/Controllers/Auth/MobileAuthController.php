@@ -55,7 +55,7 @@ class MobileAuthController extends Controller
         $mobile = $request->get('mobile');
         $amount = $request->get('amount', 0);
         $name = $request->get('name', $mobile);
-        $appDomain = parse_url(config('app.url'), PHP_URL_HOST);
+        $appDomain = strtolower(parse_url(config('app.url'), PHP_URL_HOST));
 
         // Create a new user with default credentials
         $user = User::create([
