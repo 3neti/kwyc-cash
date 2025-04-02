@@ -41,8 +41,8 @@ class SMSRegister implements SMSHandlerInterface
         $values = array_merge($values, $extras);
 
         $rules = [
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)],
             'mobile' => ['required', (new Phone)->type('mobile')->country('PH'), Rule::unique(User::class)],
+            'email' => ['nullable', 'string', 'lowercase', 'email', 'max:255', Rule::unique(User::class)],
             'name' => ['nullable', 'string', 'max:255'],
             'password' => ['nullable', Rules\Password::defaults()],
         ];
@@ -50,10 +50,10 @@ class SMSRegister implements SMSHandlerInterface
         try {
             $validated = Validator::make($values, $rules)->validate();
 
-            $appDomain = parse_url(config('app.url'), PHP_URL_HOST);
-            $email = $validated['email'];
+            $appDomain = strtolower(parse_url(config('app.url'), PHP_URL_HOST));
             $mobile = $validated['mobile'];
-            $name = $validated['name'] ?? "{$mobile}@{$appDomain}";
+            $email = $validated['email'] ?? "{$mobile}@{$appDomain}";
+            $name = $validated['name'] ?? $email;
             $password = $validated['password'] ?? 'password';
 
             $user = User::create([
@@ -88,11 +88,12 @@ class SMSRegister implements SMSHandlerInterface
 
     /**
      * Parse --key or -k style parameters from extra.
-     * Supports quoted or unquoted values for: --name / -n, --password / -p
+     * Supports quoted or unquoted values for: --email / -e, --name / -n, --password / -p
      */
     protected function parseExtras(string $extra): array
     {
         $results = [
+            'email' => null,
             'name' => null,
             'password' => null,
         ];
@@ -107,6 +108,7 @@ class SMSRegister implements SMSHandlerInterface
             Log::debug('🔍 Found flag', ['key' => $key, 'value' => $value]);
 
             match ($key) {
+                'e', 'email' => $results['email'] = trim($value),
                 'n', 'name' => $results['name'] = trim($value),
                 'p', 'password' => $results['password'] = trim($value),
                 default => null,

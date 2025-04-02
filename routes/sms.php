@@ -13,7 +13,7 @@ $router = resolve(SMSRouterService::class);
 
 $router->register('TRANSFER {mobile} {amount}', SMSTransfer::class);
 $router->register('GENERATE {extra?}', SMSGenerate::class);
-$router->register('REGISTER {email} {mobile} {extra?}', SMSRegister::class);
+$router->register('REGISTER {mobile} {extra?}', SMSRegister::class);
 
 $router->register(
     '{message}',
