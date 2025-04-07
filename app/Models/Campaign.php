@@ -75,7 +75,7 @@ class Campaign extends Model
 
     public function getQRCodeURIAttribute(): string
     {
-        return generateQRCodeURI(data: $this->url, logo: images_path('id-mark.png'));
+        return generateQRCodeURI(data: $this->url, logo: images_path('id-mark.png'), label: null);
     }
 
     public function setDisabledAttribute(bool $value): self

@@ -203,3 +203,44 @@ if (!function_exists('normalize_duration')) {
         }
     }
 }
+
+use Illuminate\Support\Str;
+
+if (! function_exists('mask_name')) {
+    function mask_name(string $name): string
+    {
+        $seed = crc32(Str::lower(trim($name)));
+        mt_srand($seed);
+
+        $words = preg_split('/\s+/', $name);
+
+        return collect($words)->map(function ($word) {
+            $chars = mb_str_split($word);
+            $length = count($chars);
+
+            if ($length === 0) {
+                return '';
+            }
+
+            // Always mask the first character
+            $masked = ['*'];
+
+            // Remaining characters
+            $rest = array_slice($chars, 1);
+            $restCount = count($rest);
+
+            // Mask at least 50% of remaining
+            $toMask = (int) ceil($restCount * 0.5);
+
+            $indexes = array_keys($rest);
+            shuffle($indexes);
+            $maskIndexes = array_slice($indexes, 0, $toMask);
+
+            foreach ($rest as $i => $char) {
+                $masked[] = in_array($i, $maskIndexes) ? '*' : $char;
+            }
+
+            return implode('', $masked);
+        })->implode(' ');
+    }
+}
