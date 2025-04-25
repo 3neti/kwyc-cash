@@ -35,8 +35,10 @@ class SendVoucherFeedback
 
         // Format the feedback message
         $data = VoucherData::fromModel($voucher);
+        $tag = $data->cash->tag ? "#" . $data->cash->tag . "\n" : "";
 
-        $message = __(":code (:amount) => :mobile\n:dt", [
+        $message = __(":tag:code (:amount) => :mobile\n:dt", [
+            'tag'    => $tag,
             'code'   => $data->code,
             'amount' => Number::currency($data->cash->value),
             'mobile' => $data->mobile,
